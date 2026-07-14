@@ -1,12 +1,3 @@
-import uuid
-from typing import Any
-
-from sqlmodel import Session, select
-
-from app.core.security import get_password_hash, verify_password
-from app.models import Item, ItemCreate, User, UserCreate, UserUpdate
-
-
 def create_user(*, session: Session, user_create: UserCreate) -> User:
     db_obj = User.model_validate(
         user_create, update={"hashed_password": get_password_hash(user_create.password)}
@@ -66,3 +57,63 @@ def create_item(*, session: Session, item_in: ItemCreate, owner_id: uuid.UUID) -
     session.commit()
     session.refresh(db_item)
     return db_item
+
+
+from app.models import Contact, ContactCreate, ContactUpdate
+
+
+def create_contact(*, session: Session, contact_in: ContactCreate) -> Contact:
+    db_obj = Contact.model_validate(contact_in)
+    session.add(db_obj)
+    session.commit()
+    session.refresh(db_obj)
+    return db_obj
+
+
+def update_contact(*, session: Session, db_contact: Contact, contact_in: ContactUpdate) -> Any:
+    contact_data = contact_in.model_dump(exclude_unset=True)
+    db_contact.sqlmodel_update(contact_data)
+    session.add(db_contact)
+    session.commit()
+    session.refresh(db_contact)
+    return db_contact
+
+
+def get_contact_by_email_and_user(*, session: Session, email: str, user_id: uuid.UUID) -> Contact | None:
+    statement = select(Contact).where(
+        Contact.email == email,
+        Contact.user_id == user_id
+    )
+    return session.exec(statement).first()
+
+
+def get_contact(session: SessionDep, current_user: CurrentUser, id: uuid.UUID) -> Contact:
+    """
+    Get a specific contact by id.
+    """
+    contact = session.get(Contact, id)
+    if not contact:
+        raise HTTPException(status_code=404, detail="Contact not found")
+    if contact.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    return contact
+
+
+def read_contacts(session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100) -> ContactsPublic:
+    """
+    Retrieve contacts.
+    """
+    count_statement = select(func.count()).select_from(Contact).where(Contact.user_id == current_user.id)
+    count = session.exec(count_statement).one()
+
+    statement = (
+        select(Contact)
+        .where(Contact.user_id == current_user.id)
+        .order_by(col(Contact.created_at).desc())
+        .offset(skip)
+        .limit(limit)
+    )
+    contacts = session.exec(statement).all()
+
+    contacts_public = [ContactPublic.model_validate(contact) for contact in contacts]
+    return ContactsPublic(data=contacts_public, count=count)

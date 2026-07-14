@@ -131,3 +131,52 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=128)
+
+
+# Contact models for JCRM
+class ContactBase(SQLModel):
+    name: str = Field(min_length=1, max_length=255)
+    email: str = Field(max_length=255)
+    phone: str | None = Field(default=None, max_length=50)
+    category: str = Field(default="personal", max_length=50)  # personal, professional, family
+    tags: list[str] = Field(default_factory=list)
+    linkedin_url: str | None = Field(default=None)
+    facebook_url: str | None = Field(default=None)
+    relationship_strength: int = Field(default=500, ge=1, le=1000)  # 1-1000 scale
+    first_met: datetime | None = Field(default=None)
+    notes: str | None = Field(default=None)
+
+
+class ContactCreate(ContactBase):
+    pass
+
+
+class ContactUpdate(SQLModel):
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    email: str | None = Field(default=None, max_length=255)
+    phone: str | None = Field(default=None, max_length=50)
+    category: str | None = Field(default=None, max_length=50)
+    tags: list[str] | None = None
+    linkedin_url: str | None = None
+    facebook_url: str | None = None
+    relationship_strength: int | None = Field(default=None, ge=1, le=1000)
+    first_met: datetime | None = None
+    notes: str | None = None
+
+
+class ContactPublic(ContactBase):
+    id: uuid.UUID
+    created_at: datetime | None = None
+
+
+class ContactsPublic(SQLModel):
+    data: list[ContactPublic]
+    count: int
+
+
+class Contact(ContactBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
