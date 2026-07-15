@@ -96,8 +96,8 @@ const AddContact = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="my-4">
-          <Plus className="mr-2" />
+        <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white">
+          <Plus className="mr-2 h-4 w-4" />
           Add Contact
         </Button>
       </DialogTrigger>
