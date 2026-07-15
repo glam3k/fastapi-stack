@@ -18,7 +18,7 @@ export function Logo({
       <>
         <span
           className={cn(
-            "text-lg font-bold text-foreground group-data-[collapsible=icon]:hidden",
+            "text-lg font-bold text-foreground bg-clip-text bg-gradient-to-r from-primary to-accent hover:from-primary/80 hover:to-accent/80 transition-all",
             className,
           )}
         >
@@ -26,7 +26,7 @@ export function Logo({
         </span>
         <span
           className={cn(
-            "text-sm font-bold text-foreground hidden group-data-[collapsible=icon]:block",
+            "text-sm font-bold text-foreground bg-clip-text bg-gradient-to-r from-primary to-accent hover:from-primary/80 hover:to-accent/80 transition-all hidden group-data-[collapsible=icon]:block",
             className,
           )}
         >
@@ -36,7 +36,9 @@ export function Logo({
     ) : (
       <span
         className={cn(
-          variant === "full" ? "text-lg font-bold" : "text-sm font-bold",
+          variant === "full"
+            ? "text-lg font-bold text-foreground bg-clip-text bg-gradient-to-r from-primary to-accent hover:from-primary/80 hover:to-accent/80 transition-all"
+            : "text-sm font-bold text-foreground bg-clip-text bg-gradient-to-r from-primary to-accent hover:from-primary/80 hover:to-accent/80 transition-all",
           className,
         )}
       >
