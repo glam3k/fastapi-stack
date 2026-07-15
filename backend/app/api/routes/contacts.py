@@ -5,7 +5,14 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Contact, ContactCreate, ContactPublic, ContactsPublic, ContactUpdate, Message
+from app.models import (
+    Contact,
+    ContactCreate,
+    ContactPublic,
+    ContactsPublic,
+    ContactUpdate,
+    Message,
+)
 
 router = APIRouter(prefix="/contacts", tags=["contacts"])
 
@@ -65,21 +72,23 @@ def create_contact(
     """
     Create new contact.
     """
-    # Check if contact with same email already exists for this user
-    existing_contact = session.exec(
-        select(Contact).where(
-            Contact.email == contact_in.email,
-            Contact.user_id == current_user.id
-        )
-    ).first()
-    if existing_contact:
-        raise HTTPException(
-            status_code=400,
-            detail="Contact with this email already exists for the current user.",
-        )
+    # Check if contact with same email already exists for this user (only if email is provided)
+    if contact_in.email:
+        existing_contact = session.exec(
+            select(Contact).where(
+                Contact.email == contact_in.email,
+                Contact.user_id == current_user.id
+            )
+        ).first()
+        if existing_contact:
+            raise HTTPException(
+                status_code=400,
+                detail="Contact with this email already exists for the current user.",
+            )
 
-    contact = Contact.model_validate(contact_in)
-    contact.user_id = current_user.id
+    contact_data = contact_in.model_dump()
+    contact_data["user_id"] = current_user.id
+    contact = Contact.model_validate(contact_data)
     session.add(contact)
     session.commit()
     session.refresh(contact)

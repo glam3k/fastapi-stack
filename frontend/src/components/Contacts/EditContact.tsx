@@ -1,7 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { Loader2 } from "lucide-react"
-import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
@@ -32,9 +30,11 @@ import { handleError } from "@/utils"
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
-  email: z.string().email({ message: "Invalid email address" }),
+  email: z.string().email({ message: "Invalid email address" }).optional(),
   phone: z.string().optional().nullable(),
-  category: z.enum(["personal", "professional", "family", "other"]).default("personal"),
+  category: z
+    .enum(["personal", "professional", "family", "other"])
+    .default("personal"),
   tags: z.array(z.string()).optional(),
   relationship_strength: z.number().min(1).max(1000),
   notes: z.string().optional().nullable(),
@@ -53,24 +53,38 @@ const EditContact = ({ contact, open, onOpenChange }: EditContactProps) => {
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     mode: "onBlur",
     criteriaMode: "all",
-    values: contact ? {
-      name: contact.name,
-      email: contact.email,
-      phone: contact.phone || "",
-      category: contact.category as any,
-      tags: contact.tags || [],
-      relationship_strength: contact.relationship_strength || 500,
-      notes: contact.notes || "",
-    } : undefined,
+    values: contact
+      ? {
+          name: contact.name,
+          email: contact.email || undefined,
+          phone: contact.phone,
+          category: contact.category as FormData["category"],
+          tags: contact.tags || [],
+          relationship_strength: contact.relationship_strength || 500,
+          notes: contact.notes,
+        }
+      : undefined,
   })
 
   const mutation = useMutation({
-    mutationFn: (data: ContactUpdate) => {
+    mutationFn: (data: FormData) => {
       if (!contact) return Promise.resolve({} as any)
-      return ContactsService.updateContact({ id: contact.id, requestBody: data })
+      const updateData: ContactUpdate = {
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        category: data.category,
+        tags: data.tags,
+        relationship_strength: data.relationship_strength,
+        notes: data.notes,
+      }
+      return ContactsService.updateContact({
+        id: contact.id,
+        requestBody: updateData,
+      })
     },
     onSuccess: () => {
       showSuccessToast("Contact updated successfully")
@@ -93,12 +107,10 @@ const EditContact = ({ contact, open, onOpenChange }: EditContactProps) => {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Contact</DialogTitle>
-          <DialogDescription>
-            Update contact information.
-          </DialogDescription>
+          <DialogDescription>Update contact information.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form onSubmit={form.handleSubmit(onSubmit as any)}>
             <div className="grid gap-4 py-4">
               <FormField
                 control={form.control}
@@ -122,7 +134,10 @@ const EditContact = ({ contact, open, onOpenChange }: EditContactProps) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Email <span className="text-destructive">*</span>
+                      Email{" "}
+                      <span className="text-muted-foreground text-xs">
+                        (optional)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input type="email" {...field} />
@@ -139,7 +154,11 @@ const EditContact = ({ contact, open, onOpenChange }: EditContactProps) => {
                   <FormItem>
                     <FormLabel>Phone</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -33,9 +33,11 @@ import { handleError } from "@/utils"
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
-  email: z.string().email({ message: "Invalid email address" }),
+  email: z.string().email({ message: "Invalid email address" }).optional(),
   phone: z.string().optional(),
-  category: z.enum(["personal", "professional", "family", "other"]).default("personal"),
+  category: z
+    .enum(["personal", "professional", "family", "other"])
+    .default("personal"),
   tags: z.array(z.string()).optional(),
   relationship_strength: z.number().min(1).max(1000).default(500),
   notes: z.string().optional(),
@@ -49,7 +51,7 @@ const AddContact = () => {
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
@@ -64,8 +66,18 @@ const AddContact = () => {
   })
 
   const mutation = useMutation({
-    mutationFn: (data: ContactCreate) =>
-      ContactsService.createContact({ requestBody: data }),
+    mutationFn: (data: FormData) => {
+      const requestData: ContactCreate = {
+        name: data.name,
+        email: data.email || undefined,
+        phone: data.phone || undefined,
+        category: data.category,
+        tags: data.tags,
+        relationship_strength: data.relationship_strength,
+        notes: data.notes || undefined,
+      }
+      return ContactsService.createContact({ requestBody: requestData })
+    },
     onSuccess: () => {
       showSuccessToast("Contact created successfully")
       form.reset()
@@ -97,7 +109,7 @@ const AddContact = () => {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form onSubmit={form.handleSubmit(onSubmit as any)}>
             <div className="grid gap-4 py-4">
               <FormField
                 control={form.control}
@@ -126,10 +138,17 @@ const AddContact = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Email <span className="text-destructive">*</span>
+                      Email{" "}
+                      <span className="text-muted-foreground text-xs">
+                        (optional)
+                      </span>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="john@example.com" type="email" {...field} />
+                      <Input
+                        placeholder="john@example.com"
+                        type="email"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

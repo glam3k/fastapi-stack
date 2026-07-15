@@ -41,7 +41,11 @@ export function ContactActionsMenu({ contact }: ContactActionsMenuProps) {
           <DropdownMenuItem>Send Message</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <EditContact contact={contact} open={editOpen} onOpenChange={setEditOpen} />
+      <EditContact
+        contact={contact}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+      />
     </>
   )
 }

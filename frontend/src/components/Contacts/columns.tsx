@@ -2,8 +2,8 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { Check, Copy, User } from "lucide-react"
 
 import type { ContactPublic } from "@/client"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 import { cn } from "@/lib/utils"
 import { ContactActionsMenu } from "./ContactActionsMenu"
@@ -51,7 +51,7 @@ function RelationshipStrength({ strength }: { strength: number }) {
         <div
           className={cn(
             "h-full rounded-full transition-all",
-            getStrengthColor(strength)
+            getStrengthColor(strength),
           )}
           style={{ width: `${strength / 10}%` }}
         />
@@ -69,35 +69,43 @@ export const columns: ColumnDef<ContactPublic>[] = [
   {
     accessorKey: "name",
     header: "Name",
-    cell: ({ row }) => (
-      <span className="font-medium">{row.original.name}</span>
-    ),
+    cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
   },
   {
     accessorKey: "email",
     header: "Email",
-    cell: ({ row }) => (
-      <span className="font-mono text-sm">{row.original.email}</span>
-    ),
+    cell: ({ row }) => {
+      const email = row.original.email
+      return email ? (
+        <span className="font-mono text-sm">{email}</span>
+      ) : (
+        <span className="text-muted-foreground text-sm">--</span>
+      )
+    },
   },
   {
     accessorKey: "category",
     header: "Category",
     cell: ({ row }) => {
       const category = row.original.category
-      const color = category === "professional" ? "blue" : 
-                   category === "family" ? "green" :
-                   category === "friend" ? "purple" : "gray"
-      return (
-        <Badge variant={color as any}>{category}</Badge>
-      )
+      const color =
+        category === "professional"
+          ? "blue"
+          : category === "family"
+            ? "green"
+            : category === "friend"
+              ? "purple"
+              : "gray"
+      return <Badge variant={color as any}>{category}</Badge>
     },
   },
   {
     accessorKey: "relationship_strength",
     header: "Strength",
     cell: ({ row }) => (
-      <RelationshipStrength strength={row.original.relationship_strength || 500} />
+      <RelationshipStrength
+        strength={row.original.relationship_strength || 500}
+      />
     ),
   },
   {

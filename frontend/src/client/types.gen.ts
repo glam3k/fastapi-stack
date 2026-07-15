@@ -9,6 +9,53 @@ export type Body_login_login_access_token = {
     client_secret?: (string | null);
 };
 
+export type ContactCreate = {
+    name: string;
+    email?: (string | null);
+    phone?: (string | null);
+    category?: string;
+    tags?: Array<(string)>;
+    linkedin_url?: (string | null);
+    facebook_url?: (string | null);
+    relationship_strength?: number;
+    first_met?: (string | null);
+    notes?: (string | null);
+};
+
+export type ContactPublic = {
+    name: string;
+    email?: (string | null);
+    phone?: (string | null);
+    category?: string;
+    tags?: Array<(string)>;
+    linkedin_url?: (string | null);
+    facebook_url?: (string | null);
+    relationship_strength?: number;
+    first_met?: (string | null);
+    notes?: (string | null);
+    id: string;
+    user_id: string;
+    created_at?: (string | null);
+};
+
+export type ContactsPublic = {
+    data: Array<ContactPublic>;
+    count: number;
+};
+
+export type ContactUpdate = {
+    name?: (string | null);
+    email?: (string | null);
+    phone?: (string | null);
+    category?: (string | null);
+    tags?: (Array<(string)> | null);
+    linkedin_url?: (string | null);
+    facebook_url?: (string | null);
+    relationship_strength?: (number | null);
+    first_met?: (string | null);
+    notes?: (string | null);
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -112,6 +159,38 @@ export type ValidationError = {
         [key: string]: unknown;
     };
 };
+
+export type ContactsReadContactsData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type ContactsReadContactsResponse = (ContactsPublic);
+
+export type ContactsCreateContactData = {
+    requestBody: ContactCreate;
+};
+
+export type ContactsCreateContactResponse = (ContactPublic);
+
+export type ContactsReadContactData = {
+    id: string;
+};
+
+export type ContactsReadContactResponse = (ContactPublic);
+
+export type ContactsUpdateContactData = {
+    id: string;
+    requestBody: ContactUpdate;
+};
+
+export type ContactsUpdateContactResponse = (ContactPublic);
+
+export type ContactsDeleteContactData = {
+    id: string;
+};
+
+export type ContactsDeleteContactResponse = (Message);
 
 export type ItemsReadItemsData = {
     limit?: number;

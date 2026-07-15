@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 
 from pydantic import EmailStr
-from sqlalchemy import DateTime
+from sqlalchemy import JSON, DateTime
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -136,10 +136,10 @@ class NewPassword(SQLModel):
 # Contact models for JCRM
 class ContactBase(SQLModel):
     name: str = Field(min_length=1, max_length=255)
-    email: str = Field(max_length=255)
+    email: str | None = Field(default=None, max_length=255)
     phone: str | None = Field(default=None, max_length=50)
     category: str = Field(default="personal", max_length=50)  # personal, professional, family
-    tags: list[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list, sa_type=JSON)
     linkedin_url: str | None = Field(default=None)
     facebook_url: str | None = Field(default=None)
     relationship_strength: int = Field(default=500, ge=1, le=1000)  # 1-1000 scale
@@ -166,6 +166,7 @@ class ContactUpdate(SQLModel):
 
 class ContactPublic(ContactBase):
     id: uuid.UUID
+    user_id: uuid.UUID
     created_at: datetime | None = None
 
 
@@ -176,6 +177,7 @@ class ContactsPublic(SQLModel):
 
 class Contact(ContactBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", ondelete="CASCADE")
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
