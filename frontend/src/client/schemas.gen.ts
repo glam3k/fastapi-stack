@@ -103,6 +103,13 @@ export const ItemCreateSchema = {
                 }
             ],
             title: 'Description'
+        },
+        tags: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Tags'
         }
     },
     type: 'object',
@@ -129,6 +136,13 @@ export const ItemPublicSchema = {
                 }
             ],
             title: 'Description'
+        },
+        tags: {
+            items: {
+                type: 'string'
+            },
+            type: 'array',
+            title: 'Tags'
         },
         id: {
             type: 'string',
@@ -184,6 +198,20 @@ export const ItemUpdateSchema = {
                 }
             ],
             title: 'Description'
+        },
+        tags: {
+            anyOf: [
+                {
+                    items: {
+                        type: 'string'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Tags'
         }
     },
     type: 'object',
@@ -262,6 +290,22 @@ export const PrivateUserCreateSchema = {
     type: 'object',
     required: ['email', 'password', 'full_name'],
     title: 'PrivateUserCreate'
+} as const;
+
+export const TagCountSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['name', 'count'],
+    title: 'TagCount'
 } as const;
 
 export const TokenSchema = {

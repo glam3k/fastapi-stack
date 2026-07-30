@@ -20,11 +20,13 @@ export type HTTPValidationError = {
 export type ItemCreate = {
     title: string;
     description?: (string | null);
+    tags?: Array<(string)>;
 };
 
 export type ItemPublic = {
     title: string;
     description?: (string | null);
+    tags?: Array<(string)>;
     id: string;
     owner_id: string;
     created_at?: (string | null);
@@ -38,6 +40,7 @@ export type ItemsPublic = {
 export type ItemUpdate = {
     title?: (string | null);
     description?: (string | null);
+    tags?: (Array<(string)> | null);
 };
 
 export type Message = {
@@ -54,6 +57,11 @@ export type PrivateUserCreate = {
     password: string;
     full_name: string;
     is_verified?: boolean;
+};
+
+export type TagCount = {
+    name: string;
+    count: number;
 };
 
 export type Token = {
@@ -117,9 +125,13 @@ export type ValidationError = {
     };
 };
 
+export type ItemsReadItemTagsResponse = (Array<TagCount>);
+
 export type ItemsReadItemsData = {
     limit?: number;
+    search?: (string | null);
     skip?: number;
+    tag?: (string | null);
 };
 
 export type ItemsReadItemsResponse = (ItemsPublic);

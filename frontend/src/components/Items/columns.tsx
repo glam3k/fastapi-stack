@@ -1,42 +1,11 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { Check, Copy } from "lucide-react"
 
 import type { ItemPublic } from "@/client"
-import { Button } from "@/components/ui/button"
-import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
+import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { ItemActionsMenu } from "./ItemActionsMenu"
 
-function CopyId({ id }: { id: string }) {
-  const [copiedText, copy] = useCopyToClipboard()
-  const isCopied = copiedText === id
-
-  return (
-    <div className="flex items-center gap-1.5 group">
-      <span className="font-mono text-xs text-muted-foreground">{id}</span>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="size-6 opacity-0 group-hover:opacity-100 transition-opacity"
-        onClick={() => copy(id)}
-      >
-        {isCopied ? (
-          <Check className="size-3 text-green-500" />
-        ) : (
-          <Copy className="size-3" />
-        )}
-        <span className="sr-only">Copy ID</span>
-      </Button>
-    </div>
-  )
-}
-
 export const columns: ColumnDef<ItemPublic>[] = [
-  {
-    accessorKey: "id",
-    header: "ID",
-    cell: ({ row }) => <CopyId id={row.original.id} />,
-  },
   {
     accessorKey: "title",
     header: "Title",
@@ -58,6 +27,28 @@ export const columns: ColumnDef<ItemPublic>[] = [
         >
           {description || "No description"}
         </span>
+      )
+    },
+  },
+  {
+    accessorKey: "tags",
+    header: "Tags",
+    cell: ({ row }) => {
+      const tags = row.original.tags || []
+      if (tags.length === 0) return null
+      return (
+        <div className="flex flex-wrap gap-1">
+          {tags.slice(0, 3).map((tag, i) => (
+            <Badge key={i} variant="outline" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
+          {tags.length > 3 && (
+            <Badge variant="outline" className="text-xs">
+              +{tags.length - 3}
+            </Badge>
+          )}
+        </div>
       )
     },
   },

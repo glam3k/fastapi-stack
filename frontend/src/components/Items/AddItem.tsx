@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Plus } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -27,12 +27,14 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
+import { TagsInput } from "@/components/ui/tags-input"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
 const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
   description: z.string().optional(),
+  tags: z.array(z.string()).optional(),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -42,6 +44,11 @@ const AddItem = () => {
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
+  const { data: tagSuggestions } = useQuery({
+    queryKey: ["item-tags"],
+    queryFn: () => ItemsService.readItemTags(),
+  })
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     mode: "onBlur",
@@ -49,12 +56,13 @@ const AddItem = () => {
     defaultValues: {
       title: "",
       description: "",
+      tags: [],
     },
   })
 
   const mutation = useMutation({
-    mutationFn: (data: ItemCreate) =>
-      ItemsService.createItem({ requestBody: data }),
+    mutationFn: (data: FormData) =>
+      ItemsService.createItem({ requestBody: data as ItemCreate }),
     onSuccess: () => {
       showSuccessToast("Item created successfully")
       form.reset()
@@ -117,6 +125,25 @@ const AddItem = () => {
                     <FormLabel>Description</FormLabel>
                     <FormControl>
                       <Input placeholder="Description" type="text" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tags</FormLabel>
+                    <FormControl>
+                      <TagsInput
+                        value={field.value ?? []}
+                        onChange={field.onChange}
+                        placeholder="Type tag and press Enter..."
+                        suggestions={tagSuggestions}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
