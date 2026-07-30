@@ -1,15 +1,10 @@
 import uuid
 from typing import Any
 
-from sqlmodel import Session, col, func, select
+from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
 from app.models import (
-    Contact,
-    ContactCreate,
-    ContactPublic,
-    ContactsPublic,
-    ContactUpdate,
     Item,
     ItemCreate,
     User,
@@ -73,51 +68,3 @@ def create_item(*, session: Session, item_in: ItemCreate, owner_id: uuid.UUID) -
     session.commit()
     session.refresh(db_item)
     return db_item
-
-
-def create_contact(*, session: Session, contact_in: ContactCreate, user_id: uuid.UUID) -> Contact:
-    contact_data = contact_in.model_dump()
-    contact_data["user_id"] = user_id
-    db_obj = Contact.model_validate(contact_data)
-    session.add(db_obj)
-    session.commit()
-    session.refresh(db_obj)
-    return db_obj
-
-
-def update_contact(*, session: Session, db_contact: Contact, contact_in: ContactUpdate) -> Any:
-    contact_data = contact_in.model_dump(exclude_unset=True)
-    db_contact.sqlmodel_update(contact_data)
-    session.add(db_contact)
-    session.commit()
-    session.refresh(db_contact)
-    return db_contact
-
-
-def get_contact_by_email_and_user(*, session: Session, email: str, user_id: uuid.UUID) -> Contact | None:
-    statement = select(Contact).where(
-        Contact.email == email,
-        Contact.user_id == user_id
-    )
-    return session.exec(statement).first()
-
-
-def read_contacts(session: Session, user_id: uuid.UUID, skip: int = 0, limit: int = 100) -> ContactsPublic:
-    count_statement = (
-        select(func.count())
-        .select_from(Contact)
-        .where(Contact.user_id == user_id)
-    )
-    count = session.exec(count_statement).one()
-
-    statement = (
-        select(Contact)
-        .where(Contact.user_id == user_id)
-        .order_by(col(Contact.created_at).desc())
-        .offset(skip)
-        .limit(limit)
-    )
-    contacts = session.exec(statement).all()
-
-    contacts_public = [ContactPublic.model_validate(contact) for contact in contacts]
-    return ContactsPublic(data=contacts_public, count=count)

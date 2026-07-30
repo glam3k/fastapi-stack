@@ -1,5 +1,6 @@
 import uuid
 from datetime import UTC, datetime
+from enum import Enum
 
 from pydantic import EmailStr
 from sqlalchemy import JSON, DateTime
@@ -56,7 +57,7 @@ class User(UserBase, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
-    items: list[Item] = Relationship(back_populates="owner", cascade_delete=True)
+    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
 
 
 # Properties to return via API, id is always required
@@ -133,64 +134,25 @@ class NewPassword(SQLModel):
     new_password: str = Field(min_length=8, max_length=128)
 
 
-# Contact models for JCRM
-class ContactBase(SQLModel):
-    name: str = Field(min_length=1, max_length=255)
-    email: str | None = Field(default=None, max_length=255)
-    phone: str | None = Field(default=None, max_length=50)
-    category: str = Field(default="personal", max_length=50)  # personal, professional, family
-    tags: list[str] = Field(default_factory=list, sa_type=JSON)
-    linkedin_url: str | None = Field(default=None)
-    facebook_url: str | None = Field(default=None)
-    photo_url: str | None = Field(default=None)
-    relationship_strength: int = Field(default=500, ge=1, le=1000)  # 1-1000 scale
-    first_met: datetime | None = Field(default=None)
-    notes: str | None = Field(default=None)
+# Job scheduler model
+class JobStatus(str, Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    DONE = "done"
+    FAILED = "failed"
 
 
-class ContactCreate(ContactBase):
-    pass
-
-
-class ContactUpdate(SQLModel):
-    name: str | None = Field(default=None, min_length=1, max_length=255)
-    email: str | None = Field(default=None, max_length=255)
-    phone: str | None = Field(default=None, max_length=50)
-    category: str | None = Field(default=None, max_length=50)
-    tags: list[str] | None = None
-    linkedin_url: str | None = None
-    facebook_url: str | None = None
-    photo_url: str | None = None
-    relationship_strength: int | None = Field(default=None, ge=1, le=1000)
-    first_met: datetime | None = None
-    notes: str | None = None
-
-
-class ContactPublic(ContactBase):
-    id: uuid.UUID
-    user_id: uuid.UUID
-    created_at: datetime | None = None
-
-
-class ContactsPublic(SQLModel):
-    data: list[ContactPublic]
-    count: int
-
-
-class BulkUpdateRequest(SQLModel):
-    ids: list[uuid.UUID]
-    data: ContactUpdate
-
-
-class BulkExportRequest(SQLModel):
-    ids: list[uuid.UUID] | None = None
-    format: str = "csv"
-
-
-class Contact(ContactBase, table=True):
+class Job(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(foreign_key="user.id", ondelete="CASCADE")
+    name: str = Field(max_length=255, index=True)
+    args: dict | None = Field(default=None, sa_type=JSON)
+    status: str = Field(default=JobStatus.PENDING, max_length=20)
+    run_at: datetime
+    max_retries: int = Field(default=3)
+    retries: int = Field(default=0)
+    error: str | None = Field(default=None)
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
-        sa_type=DateTime(timezone=True),  # type: ignore
+        sa_type=DateTime(timezone=True),
     )
+    completed_at: datetime | None = Field(default=None, sa_type=DateTime(timezone=True))

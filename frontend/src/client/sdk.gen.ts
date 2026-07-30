@@ -3,217 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ContactsReadTagsResponse, ContactsReadContactsData, ContactsReadContactsResponse, ContactsCreateContactData, ContactsCreateContactResponse, ContactsReadContactData, ContactsReadContactResponse, ContactsUpdateContactData, ContactsUpdateContactResponse, ContactsDeleteContactData, ContactsDeleteContactResponse, ContactsBulkDeleteContactsData, ContactsBulkDeleteContactsResponse, ContactsExportContactsData, ContactsExportContactsResponse, ContactsImportContactsData, ContactsImportContactsResponse, ContactsBulkUpdateContactsData, ContactsBulkUpdateContactsResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UploadsUploadPhotoEndpointData, UploadsUploadPhotoEndpointResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
-
-export class ContactsService {
-    /**
-     * Read Tags
-     * Get all unique tags for the current user with counts.
-     * @returns TagCount Successful Response
-     * @throws ApiError
-     */
-    public static readTags(): CancelablePromise<ContactsReadTagsResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/contacts/tags/'
-        });
-    }
-    
-    /**
-     * Read Contacts
-     * Retrieve contacts for current user.
-     * Supports search (substring across name, email, phone, category, tags, notes)
-     * and tag filtering.
-     * @param data The data for the request.
-     * @param data.skip
-     * @param data.limit
-     * @param data.search
-     * @param data.tag
-     * @returns ContactsPublic Successful Response
-     * @throws ApiError
-     */
-    public static readContacts(data: ContactsReadContactsData = {}): CancelablePromise<ContactsReadContactsResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/contacts/',
-            query: {
-                skip: data.skip,
-                limit: data.limit,
-                search: data.search,
-                tag: data.tag
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Create Contact
-     * Create new contact.
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns ContactPublic Successful Response
-     * @throws ApiError
-     */
-    public static createContact(data: ContactsCreateContactData): CancelablePromise<ContactsCreateContactResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/contacts/',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Read Contact
-     * Get contact by ID.
-     * @param data The data for the request.
-     * @param data.id
-     * @returns ContactPublic Successful Response
-     * @throws ApiError
-     */
-    public static readContact(data: ContactsReadContactData): CancelablePromise<ContactsReadContactResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/contacts/{id}',
-            path: {
-                id: data.id
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Update Contact
-     * Update a contact.
-     * @param data The data for the request.
-     * @param data.id
-     * @param data.requestBody
-     * @returns ContactPublic Successful Response
-     * @throws ApiError
-     */
-    public static updateContact(data: ContactsUpdateContactData): CancelablePromise<ContactsUpdateContactResponse> {
-        return __request(OpenAPI, {
-            method: 'PUT',
-            url: '/api/v1/contacts/{id}',
-            path: {
-                id: data.id
-            },
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Delete Contact
-     * Delete a contact.
-     * @param data The data for the request.
-     * @param data.id
-     * @returns Message Successful Response
-     * @throws ApiError
-     */
-    public static deleteContact(data: ContactsDeleteContactData): CancelablePromise<ContactsDeleteContactResponse> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/v1/contacts/{id}',
-            path: {
-                id: data.id
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Bulk Delete Contacts
-     * Delete multiple contacts.
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns Message Successful Response
-     * @throws ApiError
-     */
-    public static bulkDeleteContacts(data: ContactsBulkDeleteContactsData): CancelablePromise<ContactsBulkDeleteContactsResponse> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/v1/contacts/bulk',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Export Contacts
-     * Export contacts as CSV or JSON.
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns unknown Successful Response
-     * @throws ApiError
-     */
-    public static exportContacts(data: ContactsExportContactsData): CancelablePromise<ContactsExportContactsResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/contacts/bulk-export',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Import Contacts
-     * Import contacts from a CSV or JSON file.
-     * @param data The data for the request.
-     * @param data.formData
-     * @returns unknown Successful Response
-     * @throws ApiError
-     */
-    public static importContacts(data: ContactsImportContactsData): CancelablePromise<ContactsImportContactsResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/contacts/import/',
-            formData: data.formData,
-            mediaType: 'multipart/form-data',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Bulk Update Contacts
-     * Update multiple contacts.
-     * @param data The data for the request.
-     * @param data.requestBody
-     * @returns Message Successful Response
-     * @throws ApiError
-     */
-    public static bulkUpdateContacts(data: ContactsBulkUpdateContactsData): CancelablePromise<ContactsBulkUpdateContactsResponse> {
-        return __request(OpenAPI, {
-            method: 'PATCH',
-            url: '/api/v1/contacts/bulk-update',
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-}
+import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UploadsUploadPhotoEndpointData, UploadsUploadPhotoEndpointResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsAppVersionResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class ItemsService {
     /**
@@ -665,6 +455,18 @@ export class UsersService {
 }
 
 export class UtilsService {
+    /**
+     * App Version
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static appVersion(): CancelablePromise<UtilsAppVersionResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/version/'
+        });
+    }
+    
     /**
      * Test Email
      * Test emails.
