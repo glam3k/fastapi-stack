@@ -142,6 +142,7 @@ class ContactBase(SQLModel):
     tags: list[str] = Field(default_factory=list, sa_type=JSON)
     linkedin_url: str | None = Field(default=None)
     facebook_url: str | None = Field(default=None)
+    photo_url: str | None = Field(default=None)
     relationship_strength: int = Field(default=500, ge=1, le=1000)  # 1-1000 scale
     first_met: datetime | None = Field(default=None)
     notes: str | None = Field(default=None)
@@ -159,6 +160,7 @@ class ContactUpdate(SQLModel):
     tags: list[str] | None = None
     linkedin_url: str | None = None
     facebook_url: str | None = None
+    photo_url: str | None = None
     relationship_strength: int | None = Field(default=None, ge=1, le=1000)
     first_met: datetime | None = None
     notes: str | None = None
@@ -173,6 +175,16 @@ class ContactPublic(ContactBase):
 class ContactsPublic(SQLModel):
     data: list[ContactPublic]
     count: int
+
+
+class BulkUpdateRequest(SQLModel):
+    ids: list[uuid.UUID]
+    data: ContactUpdate
+
+
+class BulkExportRequest(SQLModel):
+    ids: list[uuid.UUID] | None = None
+    format: str = "csv"
 
 
 class Contact(ContactBase, table=True):

@@ -1,38 +1,13 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { Check, Copy, User } from "lucide-react"
+import { User } from "lucide-react"
 
 import type { ContactPublic } from "@/client"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { useCopyToClipboard } from "@/hooks/useCopyToClipboard"
 import { cn } from "@/lib/utils"
 import { ContactActionsMenu } from "./ContactActionsMenu"
 
-function CopyId({ id }: { id: string }) {
-  const [copiedText, copy] = useCopyToClipboard()
-  const isCopied = copiedText === id
-
-  return (
-    <div className="flex items-center gap-1.5 group">
-      <span className="font-mono text-xs text-muted-foreground">{id}</span>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="size-6 opacity-0 group-hover:opacity-100 transition-opacity"
-        onClick={() => copy(id)}
-      >
-        {isCopied ? (
-          <Check className="size-3 text-green-500" />
-        ) : (
-          <Copy className="size-3" />
-        )}
-        <span className="sr-only">Copy ID</span>
-      </Button>
-    </div>
-  )
-}
-
-function RelationshipStrength({ strength }: { strength: number }) {
+function ScoreBar({ strength }: { strength: number }) {
   const getStrengthColor = (strength: number) => {
     if (strength >= 800) return "bg-green-500"
     if (strength >= 600) return "bg-emerald-500"
@@ -62,14 +37,26 @@ function RelationshipStrength({ strength }: { strength: number }) {
 
 export const columns: ColumnDef<ContactPublic>[] = [
   {
-    accessorKey: "id",
-    header: "ID",
-    cell: ({ row }) => <CopyId id={row.original.id} />,
-  },
-  {
     accessorKey: "name",
     header: "Name",
-    cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        <Avatar className="h-7 w-7">
+          {row.original.photo_url ? (
+            <img
+              src={row.original.photo_url}
+              alt={row.original.name}
+              className="h-full w-full rounded-full object-cover"
+            />
+          ) : (
+            <AvatarFallback className="text-xs bg-muted-foreground/20">
+              {row.original.name.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          )}
+        </Avatar>
+        <span className="font-medium">{row.original.name}</span>
+      </div>
+    ),
   },
   {
     accessorKey: "email",
@@ -101,9 +88,9 @@ export const columns: ColumnDef<ContactPublic>[] = [
   },
   {
     accessorKey: "relationship_strength",
-    header: "Strength",
+    header: "Score",
     cell: ({ row }) => (
-      <RelationshipStrength
+      <ScoreBar
         strength={row.original.relationship_strength || 500}
       />
     ),

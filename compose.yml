@@ -54,6 +54,8 @@ services:
       db:
         condition: service_healthy
         restart: true
+      minio:
+        condition: service_healthy
     command: bash scripts/prestart.sh
     env_file:
       - .env
@@ -75,6 +77,11 @@ services:
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - SENTRY_DSN=${SENTRY_DSN}
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_PUBLIC_URL=http://localhost:9002
+      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD-minioadmin}
+      - MINIO_BUCKET=${MINIO_BUCKET-jcrm}
 
   backend:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
@@ -108,6 +115,11 @@ services:
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - SENTRY_DSN=${SENTRY_DSN}
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_PUBLIC_URL=http://localhost:9002
+      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD-minioadmin}
+      - MINIO_BUCKET=${MINIO_BUCKET-jcrm}
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
@@ -165,8 +177,42 @@ services:
 
       # Enable redirection for HTTP and HTTPS
       - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.middlewares=https-redirect
+
+  minio:
+    image: minio/minio
+    restart: always
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD-minioadmin}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER-minioadmin} ${MINIO_ROOT_PASSWORD-minioadmin};
+      /usr/bin/mc mb myminio/${MINIO_BUCKET-jcrm} --ignore-existing;
+      /usr/bin/mc anonymous set public myminio/${MINIO_BUCKET-jcrm};
+      exit 0;
+      "
+
 volumes:
   app-db-data:
+  minio-data:
 
 networks:
   traefik-public:

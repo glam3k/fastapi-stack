@@ -1,4 +1,4 @@
-import { MoreVertical } from "lucide-react"
+import { MoreVertical, Eye, Trash2, Pencil } from "lucide-react"
 import { useState } from "react"
 
 import type { ContactPublic } from "@/client"
@@ -10,7 +10,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import DeleteContactDialog from "./DeleteContactDialog"
 import EditContact from "./EditContact"
+import { ContactDetailModal } from "./ContactDetailModal"
 
 interface ContactActionsMenuProps {
   contact: ContactPublic
@@ -18,6 +20,8 @@ interface ContactActionsMenuProps {
 
 export function ContactActionsMenu({ contact }: ContactActionsMenuProps) {
   const [editOpen, setEditOpen] = useState(false)
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   return (
     <>
@@ -33,18 +37,38 @@ export function ContactActionsMenu({ contact }: ContactActionsMenuProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
+          <DropdownMenuItem onClick={() => setDetailOpen(true)}>
+            <Eye className="mr-2 h-4 w-4" />
+            View Details
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setEditOpen(true)}>
-            Edit Contact
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>View Interaction History</DropdownMenuItem>
-          <DropdownMenuItem>Send Message</DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setDeleteOpen(true)}
+            className="text-destructive focus:text-destructive"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <EditContact
         contact={contact}
         open={editOpen}
         onOpenChange={setEditOpen}
+      />
+      <ContactDetailModal
+        contact={contact}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
+      <DeleteContactDialog
+        contact={contact}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
       />
     </>
   )

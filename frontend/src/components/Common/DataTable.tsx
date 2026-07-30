@@ -11,8 +11,10 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react"
+import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
   SelectContent,
@@ -32,18 +34,73 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  onRowClick?: (row: TData) => void
+  selectable?: boolean
+  onSelectionChange?: (rows: TData[]) => void
+  getRowId?: (row: TData) => string
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  onRowClick,
+  selectable,
+  onSelectionChange,
+  getRowId,
 }: DataTableProps<TData, TValue>) {
+  const [rowSelection, setRowSelection] = useState({})
+
+  const allColumns = selectable
+    ? [
+        {
+          id: "select",
+          header: ({ table }) => (
+            <Checkbox
+              checked={table.getIsAllRowsSelected()}
+              onCheckedChange={(value) =>
+                table.toggleAllRowsSelected(!!value)
+              }
+            />
+          ),
+          cell: ({ row }) => (
+            <Checkbox
+              checked={row.getIsSelected()}
+              onCheckedChange={(value) => row.toggleSelected(!!value)}
+              onClick={(e) => e.stopPropagation()}
+            />
+          ),
+          enableSorting: false,
+          enableHiding: false,
+        } as ColumnDef<TData, TValue>,
+        ...columns,
+      ]
+    : columns
+
   const table = useReactTable({
     data,
-    columns,
+    columns: allColumns,
+    getRowId,
+    state: {
+      rowSelection,
+    },
+    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    enableRowSelection: selectable,
   })
+
+  useEffect(() => {
+    if (onSelectionChange) {
+      const selected = table
+        .getSelectedRowModel()
+        .rows.map((r) => r.original)
+      onSelectionChange(selected)
+    }
+  }, [rowSelection, onSelectionChange, table])
+
+  const colSpan = onRowClick
+    ? allColumns.length
+    : allColumns.length
 
   return (
     <div className="flex flex-col gap-4">
@@ -51,25 +108,28 @@ export function DataTable<TData, TValue>({
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id} className="hover:bg-transparent">
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </TableHead>
-                )
-              })}
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                </TableHead>
+              ))}
             </TableRow>
           ))}
         </TableHeader>
         <TableBody>
           {table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow
+                key={row.id}
+                onClick={() => onRowClick?.(row.original)}
+                className={onRowClick ? "cursor-pointer" : undefined}
+                data-state={row.getIsSelected() && "selected"}
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -80,7 +140,7 @@ export function DataTable<TData, TValue>({
           ) : (
             <TableRow className="hover:bg-transparent">
               <TableCell
-                colSpan={columns.length}
+                colSpan={colSpan}
                 className="h-32 text-center text-muted-foreground"
               >
                 No results found.
@@ -105,7 +165,9 @@ export function DataTable<TData, TValue>({
                 data.length,
               )}{" "}
               of{" "}
-              <span className="font-medium text-foreground">{data.length}</span>{" "}
+              <span className="font-medium text-foreground">
+                {data.length}
+              </span>{" "}
               entries
             </div>
             <div className="flex items-center gap-x-2">
