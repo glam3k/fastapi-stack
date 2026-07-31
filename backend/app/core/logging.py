@@ -2,8 +2,6 @@ import logging
 import time
 from typing import Callable
 
-from fastapi import Request, Response
-
 logger = logging.getLogger("app")
 request_logger = logging.getLogger("app.request")
 
@@ -22,16 +20,23 @@ class RequestLoggingMiddleware:
     def __init__(self, app: Callable) -> None:
         self.app = app
 
-    async def __call__(self, request: Request, call_next: Callable) -> Response:
-        start_time = time.perf_counter()
-        response = await call_next(request)
-        duration_ms = (time.perf_counter() - start_time) * 1000
+    async def __call__(self, scope, receive, send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
-        request_logger.info(
-            "%s %s -> %d (%.1fms)",
-            request.method,
-            request.url.path,
-            response.status_code,
-            duration_ms,
-        )
-        return response
+        start_time = time.perf_counter()
+
+        async def send_with_logging(message) -> None:
+            if message["type"] == "http.response.start":
+                duration_ms = (time.perf_counter() - start_time) * 1000
+                request_logger.info(
+                    "%s %s -> %d (%.1fms)",
+                    scope["method"],
+                    scope["path"],
+                    message["status"],
+                    duration_ms,
+                )
+            await send(message)
+
+        await self.app(scope, receive, send_with_logging)
