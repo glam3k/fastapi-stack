@@ -76,6 +76,7 @@ class ItemBase(SQLModel):
     title: str = Field(min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=255)
     tags: list[str] = Field(default_factory=list, sa_type=JSON)
+    photo_url: str | None = Field(default=None)
 
 
 # Properties to receive on item creation
@@ -88,6 +89,7 @@ class ItemUpdate(SQLModel):
     title: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=255)
     tags: list[str] | None = None
+    photo_url: str | None = None
 
 
 # Database model, database table inferred from class name

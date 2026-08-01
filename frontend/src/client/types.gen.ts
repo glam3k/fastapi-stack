@@ -21,12 +21,14 @@ export type ItemCreate = {
     title: string;
     description?: (string | null);
     tags?: Array<(string)>;
+    photo_url?: (string | null);
 };
 
 export type ItemPublic = {
     title: string;
     description?: (string | null);
     tags?: Array<(string)>;
+    photo_url?: (string | null);
     id: string;
     owner_id: string;
     created_at?: (string | null);
@@ -41,6 +43,7 @@ export type ItemUpdate = {
     title?: (string | null);
     description?: (string | null);
     tags?: (Array<(string)> | null);
+    photo_url?: (string | null);
 };
 
 export type Message = {

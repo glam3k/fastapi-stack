@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
 import type { ItemPublic } from "@/client"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { ItemActionsMenu } from "./ItemActionsMenu"
@@ -10,7 +11,22 @@ export const columns: ColumnDef<ItemPublic>[] = [
     accessorKey: "title",
     header: "Title",
     cell: ({ row }) => (
-      <span className="font-medium">{row.original.title}</span>
+      <div className="flex items-center gap-2">
+        <Avatar className="h-7 w-7">
+          {row.original.photo_url ? (
+            <img
+              src={row.original.photo_url}
+              alt={row.original.title}
+              className="h-full w-full rounded-full object-cover"
+            />
+          ) : (
+            <AvatarFallback className="text-xs bg-muted-foreground/20">
+              {row.original.title.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          )}
+        </Avatar>
+        <span className="font-medium">{row.original.title}</span>
+      </div>
     ),
   },
   {

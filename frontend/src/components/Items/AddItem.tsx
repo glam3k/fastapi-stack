@@ -1,11 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Plus } from "lucide-react"
+import { Plus, Upload, X } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-import { type ItemCreate, ItemsService } from "@/client"
+import { type ItemCreate, ItemsService, UploadsService } from "@/client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -35,6 +35,7 @@ const formSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
   description: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  photo_url: z.string().optional().nullable(),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -57,6 +58,7 @@ const AddItem = () => {
       title: "",
       description: "",
       tags: [],
+      photo_url: "",
     },
   })
 
@@ -144,6 +146,54 @@ const AddItem = () => {
                         placeholder="Type tag and press Enter..."
                         suggestions={tagSuggestions}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="photo_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Photo</FormLabel>
+                    <FormControl>
+                      <div className="space-y-2">
+                        {field.value && (
+                          <div className="relative w-20 h-20">
+                            <img
+                              src={field.value}
+                              alt="Preview"
+                              className="h-full w-full rounded object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => field.onChange("")}
+                              className="absolute -top-1 -right-1 rounded-full bg-destructive text-destructive-foreground p-0.5"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        )}
+                        <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground">
+                          <Upload className="h-4 w-4" />
+                          {field.value ? "Change photo" : "Upload photo"}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0]
+                              if (!file) return
+                              const formData = new FormData()
+                              formData.append("file", file)
+                              const result = await UploadsService.uploadPhotoEndpoint({ formData } as any)
+                              field.onChange((result as any).url)
+                            }}
+                          />
+                        </label>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

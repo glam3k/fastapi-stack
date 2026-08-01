@@ -110,6 +110,17 @@ export const ItemCreateSchema = {
             },
             type: 'array',
             title: 'Tags'
+        },
+        photo_url: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Photo Url'
         }
     },
     type: 'object',
@@ -143,6 +154,17 @@ export const ItemPublicSchema = {
             },
             type: 'array',
             title: 'Tags'
+        },
+        photo_url: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Photo Url'
         },
         id: {
             type: 'string',
@@ -212,6 +234,17 @@ export const ItemUpdateSchema = {
                 }
             ],
             title: 'Tags'
+        },
+        photo_url: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Photo Url'
         }
     },
     type: 'object',
