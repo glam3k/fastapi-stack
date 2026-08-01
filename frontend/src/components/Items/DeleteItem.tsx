@@ -1,6 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { Trash2 } from "lucide-react"
-import { useState } from "react"
 import { useForm } from "react-hook-form"
 
 import { ItemsService } from "@/client"
@@ -14,18 +12,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { LoadingButton } from "@/components/ui/loading-button"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
 interface DeleteItemProps {
   id: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
   onSuccess: () => void
 }
 
-const DeleteItem = ({ id, onSuccess }: DeleteItemProps) => {
-  const [isOpen, setIsOpen] = useState(false)
+const DeleteItem = ({ id, open, onOpenChange, onSuccess }: DeleteItemProps) => {
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const { handleSubmit } = useForm()
@@ -38,7 +36,7 @@ const DeleteItem = ({ id, onSuccess }: DeleteItemProps) => {
     mutationFn: deleteItem,
     onSuccess: () => {
       showSuccessToast("The item was deleted successfully")
-      setIsOpen(false)
+      onOpenChange(false)
       onSuccess()
     },
     onError: handleError.bind(showErrorToast),
@@ -52,15 +50,7 @@ const DeleteItem = ({ id, onSuccess }: DeleteItemProps) => {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuItem
-        variant="destructive"
-        onSelect={(e) => e.preventDefault()}
-        onClick={() => setIsOpen(true)}
-      >
-        <Trash2 />
-        Delete Item
-      </DropdownMenuItem>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>

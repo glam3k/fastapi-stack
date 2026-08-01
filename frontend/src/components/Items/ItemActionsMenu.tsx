@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import DeleteItem from "../Items/DeleteItem"
@@ -17,18 +18,38 @@ interface ItemActionsMenuProps {
 
 export const ItemActionsMenu = ({ item }: ItemActionsMenuProps) => {
   const [open, setOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <EllipsisVertical />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <EditItem item={item} onSuccess={() => setOpen(false)} />
-        <DeleteItem id={item.id} onSuccess={() => setOpen(false)} />
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <EllipsisVertical />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => setEditOpen(true)}>
+            Edit Item
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setDeleteOpen(true)}>
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <EditItem
+        item={item}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onSuccess={() => setEditOpen(false)}
+      />
+      <DeleteItem
+        id={item.id}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onSuccess={() => setDeleteOpen(false)}
+      />
+    </>
   )
 }

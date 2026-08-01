@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Pencil, Upload, X } from "lucide-react"
-import { useState } from "react"
+import { Upload, X } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
@@ -16,7 +15,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import {
   Form,
   FormControl,
@@ -42,11 +40,12 @@ type FormData = z.infer<typeof formSchema>
 
 interface EditItemProps {
   item: ItemPublic
+  open: boolean
+  onOpenChange: (open: boolean) => void
   onSuccess: () => void
 }
 
-const EditItem = ({ item, onSuccess }: EditItemProps) => {
-  const [isOpen, setIsOpen] = useState(false)
+const EditItem = ({ item, open, onOpenChange, onSuccess }: EditItemProps) => {
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
@@ -72,7 +71,7 @@ const EditItem = ({ item, onSuccess }: EditItemProps) => {
       ItemsService.updateItem({ id: item.id, requestBody: data }),
     onSuccess: () => {
       showSuccessToast("Item updated successfully")
-      setIsOpen(false)
+      onOpenChange(false)
       onSuccess()
     },
     onError: handleError.bind(showErrorToast),
@@ -86,14 +85,7 @@ const EditItem = ({ item, onSuccess }: EditItemProps) => {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuItem
-        onSelect={(e) => e.preventDefault()}
-        onClick={() => setIsOpen(true)}
-      >
-        <Pencil />
-        Edit Item
-      </DropdownMenuItem>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
