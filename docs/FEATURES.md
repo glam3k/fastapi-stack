@@ -12,12 +12,22 @@
 
 ## Added Modules
 
+### Global Error Handling
+- `backend/app/core/errors.py` — consistent error response schema for all API errors.
+- Every error returns: `{"success": false, "error": {"code", "message", "details"?}}`.
+- Registered in `backend/app/main.py` via `register_exception_handlers(app)`.
+- Handlers cover: HTTP errors (404/401/etc → `HTTP_ERROR`), validation errors (422 → `VALIDATION_ERROR` with field details), business errors (`ApiError` → custom codes), and a catch-all (500 → `INTERNAL_ERROR` with stack trace logged, never leaked to client).
+- Raise `ApiError(message, code="...", status_code=...)` in routes for business-rule failures.
+
 ### File Upload
 `POST /api/v1/uploads/photo` — accepts multipart file, stores in MinIO, returns public URL. Uses `backend/app/core/storage.py` which wraps boto3 for S3-compatible storage.
 
 ### Import/Export
 - `backend/app/core/io_utils.py` — `parse_import_data()`, `export_csv()`, `export_json()` for CSV/JSON data exchange.
 - Designed for any CRUD model, not tied to a specific entity.
+
+### Centralized Logging
+- `backend/app/core/logging.py` — `setup_logging()` configures log level + format; `RequestLoggingMiddleware` logs every request as `METHOD /path -> status (duration)`.
 
 ### Job Scheduler
 - `Job` table in `backend/app/models.py` — SQL-backed job queue ready for a polling worker.
@@ -32,3 +42,4 @@
 - **No Celery** — Jobs use the database, not Redis. Simpler infrastructure for small-to-medium apps.
 - **No background worker yet** — The `Job` model exists but the polling loop is left for projects to implement.
 - **MinIO for storage** — S3-compatible, runs in Docker, zero-cost for homelab.
+- **Structured errors** — Uniform error envelope with machine-readable codes (pattern used by Stripe, Twilio, etc).
