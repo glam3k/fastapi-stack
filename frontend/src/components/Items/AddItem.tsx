@@ -186,9 +186,7 @@ const AddItem = () => {
                             onChange={async (e) => {
                               const file = e.target.files?.[0]
                               if (!file) return
-                              const formData = new FormData()
-                              formData.append("file", file)
-                              const result = await UploadsService.uploadPhotoEndpoint({ formData } as any)
+                              const result = await UploadsService.uploadPhotoEndpoint({ formData: { file } as any })
                               field.onChange((result as any).url)
                             }}
                           />
