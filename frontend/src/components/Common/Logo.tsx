@@ -8,6 +8,9 @@ interface LogoProps {
   asLink?: boolean
 }
 
+const APP_NAME = import.meta.env.VITE_APP_NAME || "Stack"
+const APP_ICON = APP_NAME.charAt(0).toUpperCase()
+
 export function Logo({
   variant = "full",
   className,
@@ -22,7 +25,7 @@ export function Logo({
             className,
           )}
         >
-          JCRM
+          {APP_NAME}
         </span>
         <span
           className={cn(
@@ -30,7 +33,7 @@ export function Logo({
             className,
           )}
         >
-          J
+          {APP_ICON}
         </span>
       </>
     ) : (
@@ -42,7 +45,7 @@ export function Logo({
           className,
         )}
       >
-        {variant === "full" ? "JCRM" : "J"}
+        {variant === "full" ? APP_NAME : APP_ICON}
       </span>
     )
 
