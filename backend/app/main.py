@@ -5,6 +5,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.api.main import api_router
 from app.core.config import settings
+from app.core.errors import register_exception_handlers
 from app.core.logging import RequestLoggingMiddleware, setup_logging
 
 setup_logging()
@@ -23,6 +24,7 @@ app = FastAPI(
     generate_unique_id_function=custom_generate_unique_id,
 )
 
+register_exception_handlers(app)
 app.add_middleware(RequestLoggingMiddleware)
 
 # Set all CORS enabled origins
