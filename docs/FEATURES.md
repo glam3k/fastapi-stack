@@ -31,6 +31,7 @@
 
 ### Jobs (pyreljob)
 - Durable, SQL-backed job framework via [`pyreljob`](https://github.com/glam3k/pyreljob) — installed from git in `backend/pyproject.toml`, not vendored.
+- **Adding a new job?** Follow [`docs/ADD_A_JOB.md`](ADD_A_JOB.md).
 - Each job lives in its own folder: `backend/app/jobs/<job_name>/` with its own tasks (e.g. `backend/app/jobs/hello_world/{tasks.py, job.py}`).
 - Wrappers in `backend/app/jobs/base.py`: `register()`, `enqueue()`, `schedule()`, `start()`/`stop()` (worker lifecycle), `manager()`, `worker()`, `run_pending()`, `owner_tag()`.
 - A worker runs in-process with the FastAPI app (lifespan) when `JOBS_WORKER_ENABLED=true` (default). Set it to `false` to run workers as a separate process.
