@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ItemsReadItemTagsResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, JobsListJobsData, JobsListJobsResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UploadsUploadPhotoEndpointData, UploadsUploadPhotoEndpointResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsAppVersionResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { ItemsReadItemTagsResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, JobsListRunsData, JobsListRunsResponse, JobsEnqueueHelloWorldData, JobsEnqueueHelloWorldResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UploadsUploadPhotoEndpointData, UploadsUploadPhotoEndpointResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsAppVersionResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class ItemsService {
     /**
@@ -135,19 +135,19 @@ export class ItemsService {
 
 export class JobsService {
     /**
-     * List Jobs
-     * List jobs, newest first, with their runs and task state.
+     * List Runs
+     * List runs, newest first, with their owning job's context and task state.
      *
      * Requires authentication. Pass ``tag`` (e.g. ``user:<id>``) to scope to a
-     * specific owner; superusers may omit it to list all jobs.
+     * specific owner; superusers may omit it to list all runs.
      * @param data The data for the request.
      * @param data.tag
      * @param data.limit
      * @param data.offset
-     * @returns JobOut Successful Response
+     * @returns RunOut Successful Response
      * @throws ApiError
      */
-    public static listJobs(data: JobsListJobsData = {}): CancelablePromise<JobsListJobsResponse> {
+    public static listRuns(data: JobsListRunsData = {}): CancelablePromise<JobsListRunsResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/jobs/',
@@ -156,6 +156,26 @@ export class JobsService {
                 limit: data.limit,
                 offset: data.offset
             },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Enqueue Hello World
+     * Enqueue a HelloWorld job owned by the current user (runs on demand).
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns RunOut Successful Response
+     * @throws ApiError
+     */
+    public static enqueueHelloWorld(data: JobsEnqueueHelloWorldData): CancelablePromise<JobsEnqueueHelloWorldResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/jobs/hello-world/',
+            body: data.requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: 'Validation Error'
             }

@@ -84,6 +84,18 @@ export const HTTPValidationErrorSchema = {
     title: 'HTTPValidationError'
 } as const;
 
+export const HelloWorldRunInSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            title: 'Name',
+            default: 'world'
+        }
+    },
+    type: 'object',
+    title: 'HelloWorldRunIn'
+} as const;
+
 export const ItemCreateSchema = {
     properties: {
         title: {
@@ -270,127 +282,6 @@ export const ItemsPublicSchema = {
     title: 'ItemsPublic'
 } as const;
 
-export const JobOutSchema = {
-    properties: {
-        id: {
-            anyOf: [
-                {
-                    type: 'integer'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Id'
-        },
-        job: {
-            type: 'string',
-            title: 'Job'
-        },
-        queue: {
-            type: 'string',
-            title: 'Queue'
-        },
-        status: {
-            type: 'string',
-            title: 'Status'
-        },
-        source: {
-            type: 'string',
-            title: 'Source'
-        },
-        priority: {
-            type: 'integer',
-            title: 'Priority'
-        },
-        max_attempts: {
-            type: 'integer',
-            title: 'Max Attempts'
-        },
-        retries: {
-            type: 'integer',
-            title: 'Retries'
-        },
-        attempts: {
-            type: 'integer',
-            title: 'Attempts'
-        },
-        args: {
-            anyOf: [
-                {
-                    additionalProperties: true,
-                    type: 'object'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Args'
-        },
-        tags: {
-            anyOf: [
-                {
-                    items: {
-                        type: 'string'
-                    },
-                    type: 'array'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Tags'
-        },
-        next_run_at: {
-            anyOf: [
-                {
-                    type: 'string',
-                    format: 'date-time'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Next Run At'
-        },
-        created_at: {
-            anyOf: [
-                {
-                    type: 'string',
-                    format: 'date-time'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Created At'
-        },
-        updated_at: {
-            anyOf: [
-                {
-                    type: 'string',
-                    format: 'date-time'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Updated At'
-        },
-        runs: {
-            items: {
-                '$ref': '#/components/schemas/RunOut'
-            },
-            type: 'array',
-            title: 'Runs',
-            default: []
-        }
-    },
-    type: 'object',
-    required: ['id', 'job', 'queue', 'status', 'source', 'priority', 'max_attempts', 'retries', 'attempts'],
-    title: 'JobOut'
-} as const;
-
 export const MessageSchema = {
     properties: {
         message: {
@@ -459,6 +350,51 @@ export const RunOutSchema = {
             ],
             title: 'Id'
         },
+        job_id: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Job Id'
+        },
+        job: {
+            type: 'string',
+            title: 'Job'
+        },
+        source: {
+            type: 'string',
+            title: 'Source'
+        },
+        args: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Args'
+        },
+        tags: {
+            anyOf: [
+                {
+                    items: {
+                        type: 'string'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Tags'
+        },
         status: {
             type: 'string',
             title: 'Status'
@@ -495,6 +431,18 @@ export const RunOutSchema = {
                 }
             ],
             title: 'Worker Id'
+        },
+        scheduled_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Scheduled At'
         },
         created_at: {
             anyOf: [
@@ -542,7 +490,7 @@ export const RunOutSchema = {
         }
     },
     type: 'object',
-    required: ['id', 'status'],
+    required: ['id', 'job_id', 'job', 'source', 'status'],
     title: 'RunOut'
 } as const;
 

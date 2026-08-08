@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import { Activity, RefreshCw } from "lucide-react"
-import { useCallback, useMemo, useState } from "react"
+import { Activity, RefreshCw, Rocket } from "lucide-react"
+import { useMemo, useState } from "react"
 
-import { type JobOut, JobsService, type RunOut } from "@/client"
+import { JobsService, type RunOut } from "@/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -38,12 +38,9 @@ const runStatusVariant: Record<
   cancelled: "secondary",
 }
 
-const jobStatusVariant: Record<
-  string,
-  "default" | "secondary" | "destructive"
-> = {
-  active: "default",
-  cancelled: "secondary",
+const runSourceVariant: Record<string, "default" | "secondary"> = {
+  on_demand: "secondary",
+  scheduled: "default",
 }
 
 function shortName(fqn: string): string {
@@ -55,24 +52,51 @@ function formatTime(value?: string | null): string {
   return new Date(value).toLocaleString()
 }
 
-function RunDetails({ run }: { run: RunOut }) {
+function RunCard({ run }: { run: RunOut }) {
   return (
-    <div className="px-6 py-3 border-t">
-      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-        <Badge variant={runStatusVariant[run.status] ?? "secondary"}>
-          {run.status}
-        </Badge>
-        {run.progress != null && (
-          <span>progress {Math.round(run.progress * 100)}%</span>
-        )}
-        <span>started {formatTime(run.started_at)}</span>
-        <span>finished {formatTime(run.finished_at)}</span>
-        {run.error && (
-          <span className="text-destructive">error: {run.error}</span>
-        )}
-      </div>
+    <Card className="overflow-hidden">
+      <CardHeader className="py-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Badge variant={runStatusVariant[run.status] ?? "secondary"}>
+              {run.status}
+            </Badge>
+            <Badge variant={runSourceVariant[run.source] ?? "secondary"}>
+              {run.source}
+            </Badge>
+            <CardTitle className="text-base truncate">
+              {shortName(run.job)}
+            </CardTitle>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-xs text-muted-foreground">
+              {formatTime(run.created_at)}
+            </span>
+          </div>
+        </div>
+        <CardDescription className="truncate">
+          {run.job}
+          {run.args && Object.keys(run.args).length > 0 && (
+            <span className="text-muted-foreground">
+              {" "}
+              · {JSON.stringify(run.args)}
+            </span>
+          )}
+        </CardDescription>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground pt-1">
+          {run.progress != null && (
+            <span>progress {Math.round(run.progress * 100)}%</span>
+          )}
+          {run.worker_id && <span>worker {run.worker_id}</span>}
+          <span>started {formatTime(run.started_at)}</span>
+          <span>finished {formatTime(run.finished_at)}</span>
+          {run.error && (
+            <span className="text-destructive">error: {run.error}</span>
+          )}
+        </div>
+      </CardHeader>
       {run.tasks && run.tasks.length > 0 && (
-        <ul className="mt-2 space-y-1 text-sm">
+        <ul className="px-6 pb-3 space-y-1 text-sm">
           {run.tasks.map((task) => (
             <li
               key={task.id}
@@ -89,22 +113,23 @@ function RunDetails({ run }: { run: RunOut }) {
           ))}
         </ul>
       )}
-    </div>
+    </Card>
   )
 }
 
-function JobsTableContent() {
+function RunsList() {
   const { user: currentUser } = useAuth()
-  const [expanded, setExpanded] = useState<Set<number>>(new Set())
+  const queryClient = useQueryClient()
+  const [enqueueError, setEnqueueError] = useState<string | null>(null)
 
   const {
-    data: jobs,
+    data: runs,
     refetch,
     isFetching,
   } = useQuery({
-    queryKey: ["jobs"],
+    queryKey: ["jobs", "runs"],
     queryFn: () =>
-      JobsService.listJobs({
+      JobsService.listRuns({
         tag: currentUser?.is_superuser
           ? undefined
           : ownerTag(currentUser?.id ?? ""),
@@ -112,50 +137,65 @@ function JobsTableContent() {
     refetchInterval: 5000,
   })
 
-  const toggle = useCallback((id: number | null) => {
-    if (id == null) return
-    setExpanded((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-      return next
-    })
-  }, [])
+  const enqueueMutation = useMutation({
+    mutationFn: () => JobsService.enqueueHelloWorld({ requestBody: {} }),
+    onSuccess: () => {
+      setEnqueueError(null)
+      queryClient.invalidateQueries({ queryKey: ["jobs", "runs"] })
+    },
+    onError: () => setEnqueueError("Failed to enqueue the job"),
+  })
 
-  const runCounts = useMemo(() => {
+  const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {}
-    for (const job of jobs ?? []) {
-      for (const run of job.runs ?? []) {
-        counts[run.status] = (counts[run.status] ?? 0) + 1
-      }
+    for (const run of runs ?? []) {
+      counts[run.status] = (counts[run.status] ?? 0) + 1
     }
     return counts
-  }, [jobs])
+  }, [runs])
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {jobs?.length ?? 0} job{(jobs?.length ?? 0) !== 1 ? "s" : ""} ·
+          {runs?.length ?? 0} run{(runs?.length ?? 0) !== 1 ? "s" : ""} ·
           auto-refreshes every 5s
         </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isFetching}
-        >
-          <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          {enqueueError && (
+            <span className="text-sm text-destructive">{enqueueError}</span>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => enqueueMutation.mutate()}
+            disabled={enqueueMutation.isPending}
+          >
+            <Rocket
+              className={cn(
+                "h-4 w-4",
+                enqueueMutation.isPending && "animate-pulse",
+              )}
+            />
+            Run Hello World
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            <RefreshCw
+              className={cn("h-4 w-4", isFetching && "animate-spin")}
+            />
+            Refresh
+          </Button>
+        </div>
       </div>
 
-      {jobs && jobs.length > 0 && (
+      {runs && runs.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {Object.entries(runCounts).map(([status, count]) => (
+          {Object.entries(statusCounts).map(([status, count]) => (
             <Badge
               key={status}
               variant={runStatusVariant[status] ?? "secondary"}
@@ -166,58 +206,20 @@ function JobsTableContent() {
         </div>
       )}
 
-      {!jobs || jobs.length === 0 ? (
+      {!runs || runs.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center py-12">
           <div className="rounded-full bg-muted p-4 mb-4">
             <Activity className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-semibold">No jobs yet</h3>
+          <h3 className="text-lg font-semibold">No runs yet</h3>
           <p className="text-muted-foreground">
-            Jobs will appear here once your app enqueues them
+            Runs will appear here once your app enqueues jobs
           </p>
         </div>
       ) : (
         <div className="space-y-2">
-          {jobs.map((job: JobOut) => (
-            <Card key={job.id} className="overflow-hidden">
-              <button
-                type="button"
-                onClick={() => toggle(job.id)}
-                className="w-full text-left"
-              >
-                <CardHeader className="py-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Badge
-                        variant={jobStatusVariant[job.status] ?? "secondary"}
-                      >
-                        {job.status}
-                      </Badge>
-                      <CardTitle className="text-base truncate">
-                        {shortName(job.job)}
-                      </CardTitle>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Badge variant="outline">{job.source}</Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {formatTime(job.created_at)}
-                      </span>
-                    </div>
-                  </div>
-                  <CardDescription className="truncate">
-                    {job.job}
-                    {job.args && Object.keys(job.args).length > 0 && (
-                      <span className="text-muted-foreground">
-                        {" "}
-                        · {JSON.stringify(job.args)}
-                      </span>
-                    )}
-                  </CardDescription>
-                </CardHeader>
-              </button>
-              {expanded.has(job.id ?? -1) &&
-                job.runs?.map((run) => <RunDetails key={run.id} run={run} />)}
-            </Card>
+          {runs.map((run: RunOut) => (
+            <RunCard key={run.id} run={run} />
           ))}
         </div>
       )}
@@ -236,7 +238,7 @@ function Jobs() {
           </p>
         </div>
       </div>
-      <JobsTableContent />
+      <RunsList />
     </div>
   )
 }

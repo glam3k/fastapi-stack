@@ -13,6 +13,10 @@ export type Body_uploads_upload_photo_endpoint = {
     file: string;
 };
 
+export type HelloWorldRunIn = {
+    name?: string;
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -46,26 +50,6 @@ export type ItemUpdate = {
     photo_url?: (string | null);
 };
 
-export type JobOut = {
-    id: (number | null);
-    job: string;
-    queue: string;
-    status: string;
-    source: string;
-    priority: number;
-    max_attempts: number;
-    retries: number;
-    attempts: number;
-    args?: ({
-    [key: string]: unknown;
-} | null);
-    tags?: (Array<(string)> | null);
-    next_run_at?: (string | null);
-    created_at?: (string | null);
-    updated_at?: (string | null);
-    runs?: Array<RunOut>;
-};
-
 export type Message = {
     message: string;
 };
@@ -84,10 +68,18 @@ export type PrivateUserCreate = {
 
 export type RunOut = {
     id: (number | null);
+    job_id: (number | null);
+    job: string;
+    source: string;
+    args?: ({
+    [key: string]: unknown;
+} | null);
+    tags?: (Array<(string)> | null);
     status: string;
     progress?: (number | null);
     error?: (string | null);
     worker_id?: (string | null);
+    scheduled_at?: (string | null);
     created_at?: (string | null);
     started_at?: (string | null);
     finished_at?: (string | null);
@@ -207,13 +199,19 @@ export type ItemsDeleteItemData = {
 
 export type ItemsDeleteItemResponse = (Message);
 
-export type JobsListJobsData = {
+export type JobsListRunsData = {
     limit?: number;
     offset?: number;
     tag?: (string | null);
 };
 
-export type JobsListJobsResponse = (Array<JobOut>);
+export type JobsListRunsResponse = (Array<RunOut>);
+
+export type JobsEnqueueHelloWorldData = {
+    requestBody: HelloWorldRunIn;
+};
+
+export type JobsEnqueueHelloWorldResponse = (RunOut);
 
 export type LoginLoginAccessTokenData = {
     formData: Body_login_login_access_token;

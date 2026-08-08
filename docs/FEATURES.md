@@ -35,8 +35,9 @@
 - Wrappers in `backend/app/jobs/base.py`: `register()`, `enqueue()`, `schedule()`, `start()`/`stop()` (worker lifecycle), `manager()`, `worker()`, `run_pending()`, `owner_tag()`.
 - A worker runs in-process with the FastAPI app (lifespan) when `JOBS_WORKER_ENABLED=true` (default). Set it to `false` to run workers as a separate process.
 - Jobs are registered in `backend/app/jobs/__init__.py`; add new job folders and import them there.
-- `GET /api/v1/jobs/` — read-only job dashboard (list jobs + runs + task state). No POST: enqueuing is done by app-specific endpoints.
-- **Owner scoping**: jobs carry app-agnostic `tags` (pyreljob v10 migration). Tag a job with `owner_tag(user.id)` (`user:<id>`) at enqueue time, then list with `?tag=user:<id>`; the frontend Jobs tab does this automatically so each user only sees their own jobs. Superusers can omit `tag` to see everything.
+- `GET /api/v1/jobs/` — runs-first dashboard: every **run** (execution) is listed newest-first with its owning job's context and task state. Runs are the operational unit: on-demand enqueues create one run each; maintained jobs fire many runs over time.
+- `POST /api/v1/jobs/hello-world/` — the template's example of an app-specific enqueue endpoint (the dashboard's "Run Hello World" button calls this); it tags the job with the current user's owner tag.
+- **Owner scoping**: jobs carry app-agnostic `tags` (pyreljob v10 migration). Tag a job with `owner_tag(user.id)` (`user:<id>`) at enqueue time, then list runs with `?tag=user:<id>`; the frontend Jobs tab does this automatically so each user only sees their own runs. Superusers can omit `tag` to see everything.
 
 ### Version Endpoint
 `GET /api/v1/version/` — returns `{"name": "...", "version": "..."}` from package metadata. Public, no auth required.

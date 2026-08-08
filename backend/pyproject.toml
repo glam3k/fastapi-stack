@@ -20,7 +20,7 @@ dependencies = [
     "pyjwt<3.0.0,>=2.13.0",
     "pwdlib[argon2,bcrypt]>=0.3.0",
     "boto3>=1.28.0,<2.0.0",
-    "pyreljob @ git+https://github.com/glam3k/pyreljob.git@057ff9e",
+    "pyreljob @ git+https://github.com/glam3k/pyreljob.git@0b0e012",
 ]
 
 [dependency-groups]
