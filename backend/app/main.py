@@ -1,14 +1,27 @@
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
 
+from app import jobs
 from app.api.main import api_router
 from app.core.config import settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import RequestLoggingMiddleware, setup_logging
 
 setup_logging()
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    if settings.JOBS_WORKER_ENABLED:
+        jobs.start()
+    yield
+    if settings.JOBS_WORKER_ENABLED:
+        jobs.stop()
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -22,6 +35,7 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     generate_unique_id_function=custom_generate_unique_id,
+    lifespan=lifespan,
 )
 
 register_exception_handlers(app)

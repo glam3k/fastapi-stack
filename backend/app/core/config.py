@@ -39,6 +39,10 @@ class Settings(BaseSettings):
     # Set to false to require an admin to create users
     OPEN_REGISTRATION: bool = True
 
+    # Run a pyreljob worker in-process with the FastAPI app (lifespan).
+    # Set to false to run workers as a separate process instead.
+    JOBS_WORKER_ENABLED: bool = True
+
     BACKEND_CORS_ORIGINS: Annotated[
         list[AnyUrl] | str, BeforeValidator(parse_cors)
     ] = []

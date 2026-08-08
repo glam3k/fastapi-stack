@@ -29,17 +29,19 @@
 ### Centralized Logging
 - `backend/app/core/logging.py` — `setup_logging()` configures log level + format; `RequestLoggingMiddleware` logs every request as `METHOD /path -> status (duration)`.
 
-### Job Scheduler
-- `Job` table in `backend/app/models.py` — SQL-backed job queue ready for a polling worker.
-- Status tracking (pending/running/done/failed), retry support, error logging.
-- Worker implementation to be built per-project.
+### Jobs (pyreljob)
+- Durable, SQL-backed job framework via [`pyreljob`](https://github.com/glam3k/pyreljob) — installed from git in `backend/pyproject.toml`, not vendored.
+- Each job lives in its own folder: `backend/app/jobs/<job_name>/` with its own tasks (e.g. `backend/app/jobs/hello_world/{tasks.py, job.py}`).
+- Wrappers in `backend/app/jobs/base.py`: `register()`, `enqueue()`, `schedule()`, `start()`/`stop()` (worker lifecycle), `manager()`, `worker()`, `run_pending()`.
+- A worker runs in-process with the FastAPI app (lifespan) when `JOBS_WORKER_ENABLED=true` (default). Set it to `false` to run workers as a separate process.
+- Jobs are registered in `backend/app/jobs/__init__.py`; add new job folders and import them there.
 
 ### Version Endpoint
 `GET /api/v1/version/` — returns `{"name": "...", "version": "..."}` from package metadata. Public, no auth required.
 
 ## Design Decisions
 
-- **No Celery** — Jobs use the database, not Redis. Simpler infrastructure for small-to-medium apps.
-- **No background worker yet** — The `Job` model exists but the polling loop is left for projects to implement.
+- **No Celery** — Jobs use the database (pyreljob on the app Postgres), not Redis. Simpler infrastructure for small-to-medium apps.
+- **pyreljob for background work** — durable `Job → Run → Task` model with retries, compensation, and scheduled jobs, running through the template's `app/jobs` wrappers.
 - **MinIO for storage** — S3-compatible, runs in Docker, zero-cost for homelab.
 - **Structured errors** — Uniform error envelope with machine-readable codes (pattern used by Stripe, Twilio, etc).

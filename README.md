@@ -18,7 +18,7 @@ This fork adds those as optional modules you can use or remove per project.
 | Feature | Status | Module |
 |---------|--------|--------|
 | MinIO file upload | ✅ | `backend/app/core/storage.py`, `routes/uploads.py` |
-| Job scheduler model | ✅ | `backend/app/models.py` → `Job` table |
+| Background jobs (pyreljob) | ✅ | `backend/app/jobs/` |
 | Import/export utilities | ✅ | `backend/app/core/io_utils.py` |
 | Version API | ✅ | `GET /api/v1/version/` |
 | Sidebar version | ✅ | AppSidebar shows name + version |
@@ -57,7 +57,10 @@ backend/
 │   ├── core/
 │   │   ├── storage.py  # MinIO/S3 utilities
 │   │   ├── io_utils.py # CSV/JSON import/export
-│   │   └── jobs/       # Job scheduler (coming)
+│   │   └── errors.py   # Global error handling
+│   ├── jobs/           # pyreljob jobs (each job in its own folder)
+│   │   ├── base.py     # wrappers: register/enqueue/schedule/worker
+│   │   └── hello_world/ # example job with its own tasks
 │   └── models.py       # SQLModel definitions
 
 frontend/

@@ -1,8 +1,11 @@
+import os
 from collections.abc import Generator
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, delete
+
+os.environ.setdefault("JOBS_WORKER_ENABLED", "false")
 
 from app.core.config import settings
 from app.core.db import engine, init_db
