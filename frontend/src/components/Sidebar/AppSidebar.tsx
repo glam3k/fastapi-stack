@@ -1,6 +1,6 @@
-import { Briefcase, Home, Users } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
-
+import { Briefcase, Home, ListChecks, Users } from "lucide-react"
+import { UtilsService } from "@/client"
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
 import {
@@ -10,13 +10,13 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar"
 import useAuth from "@/hooks/useAuth"
-import { UtilsService } from "@/client"
 import { type Item, Main } from "./Main"
 import { User } from "./User"
 
 const baseItems: Item[] = [
   { icon: Home, title: "Dashboard", path: "/" },
   { icon: Briefcase, title: "Items", path: "/items" },
+  { icon: ListChecks, title: "Jobs", path: "/jobs" },
 ]
 
 export function AppSidebar() {

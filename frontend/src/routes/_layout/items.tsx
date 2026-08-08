@@ -4,13 +4,13 @@ import { ChevronLeft, ChevronRight, Search, X } from "lucide-react"
 import { Suspense, useMemo, useState } from "react"
 
 import { ItemsService } from "@/client"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/Common/DataTable"
 import AddItem from "@/components/Items/AddItem"
 import { columns } from "@/components/Items/columns"
-import { Input } from "@/components/ui/input"
 import PendingItems from "@/components/Pending/PendingItems"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 export const Route = createFileRoute("/_layout/items")({
   component: Items,
@@ -165,7 +165,9 @@ function ItemsTableContent() {
           <div className="rounded-full bg-muted p-4 mb-4">
             <Search className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-semibold">You don't have any items yet</h3>
+          <h3 className="text-lg font-semibold">
+            You don't have any items yet
+          </h3>
           <p className="text-muted-foreground">Add a new item to get started</p>
         </div>
       ) : items.data.length === 0 ? (

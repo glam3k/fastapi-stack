@@ -32,9 +32,11 @@
 ### Jobs (pyreljob)
 - Durable, SQL-backed job framework via [`pyreljob`](https://github.com/glam3k/pyreljob) — installed from git in `backend/pyproject.toml`, not vendored.
 - Each job lives in its own folder: `backend/app/jobs/<job_name>/` with its own tasks (e.g. `backend/app/jobs/hello_world/{tasks.py, job.py}`).
-- Wrappers in `backend/app/jobs/base.py`: `register()`, `enqueue()`, `schedule()`, `start()`/`stop()` (worker lifecycle), `manager()`, `worker()`, `run_pending()`.
+- Wrappers in `backend/app/jobs/base.py`: `register()`, `enqueue()`, `schedule()`, `start()`/`stop()` (worker lifecycle), `manager()`, `worker()`, `run_pending()`, `owner_tag()`.
 - A worker runs in-process with the FastAPI app (lifespan) when `JOBS_WORKER_ENABLED=true` (default). Set it to `false` to run workers as a separate process.
 - Jobs are registered in `backend/app/jobs/__init__.py`; add new job folders and import them there.
+- `GET /api/v1/jobs/` — read-only job dashboard (list jobs + runs + task state). No POST: enqueuing is done by app-specific endpoints.
+- **Owner scoping**: jobs carry app-agnostic `tags` (pyreljob v10 migration). Tag a job with `owner_tag(user.id)` (`user:<id>`) at enqueue time, then list with `?tag=user:<id>`; the frontend Jobs tab does this automatically so each user only sees their own jobs. Superusers can omit `tag` to see everything.
 
 ### Version Endpoint
 `GET /api/v1/version/` — returns `{"name": "...", "version": "..."}` from package metadata. Public, no auth required.

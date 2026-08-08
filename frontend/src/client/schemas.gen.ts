@@ -270,6 +270,127 @@ export const ItemsPublicSchema = {
     title: 'ItemsPublic'
 } as const;
 
+export const JobOutSchema = {
+    properties: {
+        id: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Id'
+        },
+        job: {
+            type: 'string',
+            title: 'Job'
+        },
+        queue: {
+            type: 'string',
+            title: 'Queue'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        source: {
+            type: 'string',
+            title: 'Source'
+        },
+        priority: {
+            type: 'integer',
+            title: 'Priority'
+        },
+        max_attempts: {
+            type: 'integer',
+            title: 'Max Attempts'
+        },
+        retries: {
+            type: 'integer',
+            title: 'Retries'
+        },
+        attempts: {
+            type: 'integer',
+            title: 'Attempts'
+        },
+        args: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Args'
+        },
+        tags: {
+            anyOf: [
+                {
+                    items: {
+                        type: 'string'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Tags'
+        },
+        next_run_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Next Run At'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        },
+        updated_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Updated At'
+        },
+        runs: {
+            items: {
+                '$ref': '#/components/schemas/RunOut'
+            },
+            type: 'array',
+            title: 'Runs',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['id', 'job', 'queue', 'status', 'source', 'priority', 'max_attempts', 'retries', 'attempts'],
+    title: 'JobOut'
+} as const;
+
 export const MessageSchema = {
     properties: {
         message: {
@@ -325,6 +446,106 @@ export const PrivateUserCreateSchema = {
     title: 'PrivateUserCreate'
 } as const;
 
+export const RunOutSchema = {
+    properties: {
+        id: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Id'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        progress: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Progress'
+        },
+        error: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Error'
+        },
+        worker_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Worker Id'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        },
+        started_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Started At'
+        },
+        finished_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Finished At'
+        },
+        tasks: {
+            items: {
+                '$ref': '#/components/schemas/TaskOut'
+            },
+            type: 'array',
+            title: 'Tasks',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['id', 'status'],
+    title: 'RunOut'
+} as const;
+
 export const TagCountSchema = {
     properties: {
         name: {
@@ -339,6 +560,76 @@ export const TagCountSchema = {
     type: 'object',
     required: ['name', 'count'],
     title: 'TagCount'
+} as const;
+
+export const TaskOutSchema = {
+    properties: {
+        id: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Id'
+        },
+        position: {
+            type: 'integer',
+            title: 'Position'
+        },
+        task_name: {
+            type: 'string',
+            title: 'Task Name'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        attempts: {
+            type: 'integer',
+            title: 'Attempts'
+        },
+        error: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Error'
+        },
+        started_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Started At'
+        },
+        finished_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Finished At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'position', 'task_name', 'status', 'attempts'],
+    title: 'TaskOut'
 } as const;
 
 export const TokenSchema = {

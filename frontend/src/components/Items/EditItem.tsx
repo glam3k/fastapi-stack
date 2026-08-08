@@ -179,7 +179,10 @@ const EditItem = ({ item, open, onOpenChange, onSuccess }: EditItemProps) => {
                             onChange={async (e) => {
                               const file = e.target.files?.[0]
                               if (!file) return
-                              const result = await UploadsService.uploadPhotoEndpoint({ formData: { file } as any })
+                              const result =
+                                await UploadsService.uploadPhotoEndpoint({
+                                  formData: { file } as any,
+                                })
                               field.onChange((result as any).url)
                             }}
                           />

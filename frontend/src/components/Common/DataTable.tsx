@@ -57,9 +57,7 @@ export function DataTable<TData, TValue>({
           header: ({ table }) => (
             <Checkbox
               checked={table.getIsAllRowsSelected()}
-              onCheckedChange={(value) =>
-                table.toggleAllRowsSelected(!!value)
-              }
+              onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
             />
           ),
           cell: ({ row }) => (
@@ -91,16 +89,12 @@ export function DataTable<TData, TValue>({
 
   useEffect(() => {
     if (onSelectionChange) {
-      const selected = table
-        .getSelectedRowModel()
-        .rows.map((r) => r.original)
+      const selected = table.getSelectedRowModel().rows.map((r) => r.original)
       onSelectionChange(selected)
     }
-  }, [rowSelection, onSelectionChange, table])
+  }, [onSelectionChange, table])
 
-  const colSpan = onRowClick
-    ? allColumns.length
-    : allColumns.length
+  const colSpan = onRowClick ? allColumns.length : allColumns.length
 
   return (
     <div className="flex flex-col gap-4">
@@ -165,9 +159,7 @@ export function DataTable<TData, TValue>({
                 data.length,
               )}{" "}
               of{" "}
-              <span className="font-medium text-foreground">
-                {data.length}
-              </span>{" "}
+              <span className="font-medium text-foreground">{data.length}</span>{" "}
               entries
             </div>
             <div className="flex items-center gap-x-2">

@@ -67,8 +67,13 @@ def enqueue(
     retries: int = 0,
     idempotency_key: str | None = None,
     scheduled_at: datetime | None = None,
+    tags: list[str] | None = None,
 ) -> JobRecord:
-    """Create a durable job and its first run."""
+    """Create a durable job and its first run.
+
+    ``tags`` are app-agnostic strings. Tag a job with :func:`owner_tag` so it
+    is scoped to (and only visible to) that user in the jobs dashboard.
+    """
     return manager().enqueue(
         job,
         queue=queue,
@@ -77,6 +82,7 @@ def enqueue(
         retries=retries,
         idempotency_key=idempotency_key,
         scheduled_at=scheduled_at,
+        tags=tags,
     )
 
 
@@ -86,6 +92,7 @@ def schedule(
     queue: str | None = None,
     max_attempts: int = 3,
     retries: int = 0,
+    tags: list[str] | None = None,
 ) -> JobRecord:
     """Register a maintained (recurring) job."""
     return manager().schedule(
@@ -93,7 +100,13 @@ def schedule(
         queue=queue,
         max_attempts=max_attempts,
         retries=retries,
+        tags=tags,
     )
+
+
+def owner_tag(user_id: str | object) -> str:
+    """The tag used to scope a job to its owner (a signed-in user)."""
+    return f"user:{user_id}"
 
 
 def start() -> None:

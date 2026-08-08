@@ -46,6 +46,26 @@ export type ItemUpdate = {
     photo_url?: (string | null);
 };
 
+export type JobOut = {
+    id: (number | null);
+    job: string;
+    queue: string;
+    status: string;
+    source: string;
+    priority: number;
+    max_attempts: number;
+    retries: number;
+    attempts: number;
+    args?: ({
+    [key: string]: unknown;
+} | null);
+    tags?: (Array<(string)> | null);
+    next_run_at?: (string | null);
+    created_at?: (string | null);
+    updated_at?: (string | null);
+    runs?: Array<RunOut>;
+};
+
 export type Message = {
     message: string;
 };
@@ -62,9 +82,32 @@ export type PrivateUserCreate = {
     is_verified?: boolean;
 };
 
+export type RunOut = {
+    id: (number | null);
+    status: string;
+    progress?: (number | null);
+    error?: (string | null);
+    worker_id?: (string | null);
+    created_at?: (string | null);
+    started_at?: (string | null);
+    finished_at?: (string | null);
+    tasks?: Array<TaskOut>;
+};
+
 export type TagCount = {
     name: string;
     count: number;
+};
+
+export type TaskOut = {
+    id: (number | null);
+    position: number;
+    task_name: string;
+    status: string;
+    attempts: number;
+    error?: (string | null);
+    started_at?: (string | null);
+    finished_at?: (string | null);
 };
 
 export type Token = {
@@ -163,6 +206,14 @@ export type ItemsDeleteItemData = {
 };
 
 export type ItemsDeleteItemResponse = (Message);
+
+export type JobsListJobsData = {
+    limit?: number;
+    offset?: number;
+    tag?: (string | null);
+};
+
+export type JobsListJobsResponse = (Array<JobOut>);
 
 export type LoginLoginAccessTokenData = {
     formData: Body_login_login_access_token;
