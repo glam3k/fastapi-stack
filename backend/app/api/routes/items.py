@@ -3,12 +3,20 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import cast, text
 from sqlalchemy import String as SAString
+from sqlalchemy import cast, text
 from sqlmodel import col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Item, ItemCreate, ItemPublic, ItemsPublic, ItemUpdate, Message, get_datetime_utc
+from app.models import (
+    Item,
+    ItemCreate,
+    ItemPublic,
+    ItemsPublic,
+    ItemUpdate,
+    Message,
+    get_datetime_utc,
+)
 
 router = APIRouter(prefix="/items", tags=["items"])
 
@@ -42,9 +50,17 @@ def read_items(
     skip: int = 0, limit: int = 100,
     search: str | None = None,
     tag: str | None = None,
+    include_tags: str | None = None,
+    exclude_tags: str | None = None,
+    sort: str | None = None,
 ) -> Any:
     """
     Retrieve items with optional search and tag filtering.
+
+    ``include_tags`` / ``exclude_tags`` are comma-separated lists; include
+    requires all listed tags, exclude rejects any listed tag. ``sort`` is one
+    of ``created_desc`` (default), ``created_asc``, ``title_asc``,
+    ``title_desc``.
     """
 
     if current_user.is_superuser:
@@ -65,13 +81,30 @@ def read_items(
             cast(Item.tags, SAString).contains(f'"{tag}"')
         )
 
+    if include_tags:
+        for t in (x.strip() for x in include_tags.split(",") if x.strip()):
+            base_conditions.append(cast(Item.tags, SAString).contains(f'"{t}"'))
+
+    if exclude_tags:
+        for t in (x.strip() for x in exclude_tags.split(",") if x.strip()):
+            base_conditions.append(
+                ~cast(Item.tags, SAString).contains(f'"{t}"')
+            )
+
     count_statement = select(func.count()).select_from(Item).where(*base_conditions)
     count = session.exec(count_statement).one()
+
+    order = {
+        "created_desc": (col(Item.created_at).desc(),),
+        "created_asc": (col(Item.created_at).asc(),),
+        "title_asc": (col(Item.title).asc(),),
+        "title_desc": (col(Item.title).desc(),),
+    }.get(sort or "created_desc", (col(Item.created_at).desc(),))
 
     statement = (
         select(Item)
         .where(*base_conditions)
-        .order_by(col(Item.created_at).desc())
+        .order_by(*order)
         .offset(skip)
         .limit(limit)
     )

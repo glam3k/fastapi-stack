@@ -78,11 +78,19 @@ export class ItemsService {
     /**
      * Read Items
      * Retrieve items with optional search and tag filtering.
+     *
+     * ``include_tags`` / ``exclude_tags`` are comma-separated lists; include
+     * requires all listed tags, exclude rejects any listed tag. ``sort`` is one
+     * of ``created_desc`` (default), ``created_asc``, ``title_asc``,
+     * ``title_desc``.
      * @param data The data for the request.
      * @param data.skip
      * @param data.limit
      * @param data.search
      * @param data.tag
+     * @param data.includeTags
+     * @param data.excludeTags
+     * @param data.sort
      * @returns ItemsPublic Successful Response
      * @throws ApiError
      */
@@ -94,7 +102,10 @@ export class ItemsService {
                 skip: data.skip,
                 limit: data.limit,
                 search: data.search,
-                tag: data.tag
+                tag: data.tag,
+                include_tags: data.includeTags,
+                exclude_tags: data.excludeTags,
+                sort: data.sort
             },
             errors: {
                 422: 'Validation Error'

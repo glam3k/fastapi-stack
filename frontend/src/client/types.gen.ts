@@ -202,9 +202,12 @@ export type ApiKeysRevokeApiKeyResponse = (Message);
 export type ItemsReadItemTagsResponse = (Array<TagCount>);
 
 export type ItemsReadItemsData = {
+    excludeTags?: (string | null);
+    includeTags?: (string | null);
     limit?: number;
     search?: (string | null);
     skip?: number;
+    sort?: (string | null);
     tag?: (string | null);
 };
 
