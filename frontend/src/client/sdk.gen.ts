@@ -3,7 +3,63 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ItemsReadItemTagsResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, JobsListRunsData, JobsListRunsResponse, JobsEnqueueHelloWorldData, JobsEnqueueHelloWorldResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UploadsUploadPhotoEndpointData, UploadsUploadPhotoEndpointResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsAppVersionResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { ApiKeysListApiKeysResponse, ApiKeysCreateApiKeyData, ApiKeysCreateApiKeyResponse, ApiKeysRevokeApiKeyData, ApiKeysRevokeApiKeyResponse, ItemsReadItemTagsResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, JobsListRunsData, JobsListRunsResponse, JobsEnqueueHelloWorldData, JobsEnqueueHelloWorldResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UploadsUploadPhotoEndpointData, UploadsUploadPhotoEndpointResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsAppVersionResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+
+export class ApiKeysService {
+    /**
+     * List Api Keys
+     * List the current user's API keys (never the keys themselves).
+     * @returns ApiKeyPublic Successful Response
+     * @throws ApiError
+     */
+    public static listApiKeys(): CancelablePromise<ApiKeysListApiKeysResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/api-keys/'
+        });
+    }
+    
+    /**
+     * Create Api Key
+     * Issue a new API key. The plaintext key is returned exactly once.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ApiKeyCreated Successful Response
+     * @throws ApiError
+     */
+    public static createApiKey(data: ApiKeysCreateApiKeyData): CancelablePromise<ApiKeysCreateApiKeyResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/api-keys/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Revoke Api Key
+     * Revoke an API key. Revoked keys are kept but can no longer authenticate.
+     * @param data The data for the request.
+     * @param data.apiKeyId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static revokeApiKey(data: ApiKeysRevokeApiKeyData): CancelablePromise<ApiKeysRevokeApiKeyResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/api-keys/{api_key_id}',
+            path: {
+                api_key_id: data.apiKeyId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
 
 export class ItemsService {
     /**

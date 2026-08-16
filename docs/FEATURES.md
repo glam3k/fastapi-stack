@@ -43,6 +43,15 @@
 ### Version Endpoint
 `GET /api/v1/version/` — returns `{"name": "...", "version": "..."}` from package metadata. Public, no auth required.
 
+### API Keys (external apps)
+Long-lived, revocable tokens so non-human clients can call the API as a user without a password or short-lived JWT.
+- `POST /api/v1/api-keys/` — issue a key (body `{"name": "..."}`). The plaintext key (`<prefix>_<random>`) is returned **exactly once**; only its hash is stored (argon2/bcrypt).
+- `GET /api/v1/api-keys/` — list your keys (never returns the keys themselves).
+- `DELETE /api/v1/api-keys/{id}` — revoke (kept for the audit trail, can no longer authenticate).
+- Auth: send `Authorization: Bearer <key>` anywhere a user JWT works — `get_current_user` in `backend/app/api/deps.py` resolves keys (non-JWT tokens) by hash.
+- UI: **Settings → API keys** tab — create (with one-time copy), list, revoke.
+- Prefix configurable via `API_KEY_PREFIX` (default `stack`).
+
 ## Design Decisions
 
 - **No Celery** — Jobs use the database (pyreljob on the app Postgres), not Redis. Simpler infrastructure for small-to-medium apps.

@@ -121,6 +121,42 @@ class ItemsPublic(SQLModel):
     count: int
 
 
+class ApiKeyBase(SQLModel):
+    name: str = Field(min_length=1, max_length=100)
+
+
+class ApiKeyCreate(ApiKeyBase):
+    pass
+
+
+class ApiKeyPublic(ApiKeyBase):
+    id: uuid.UUID
+    created_at: datetime | None = None
+    revoked_at: datetime | None = None
+
+
+class ApiKeyCreated(ApiKeyPublic):
+    """Returned once when a key is created; the plaintext key is shown only here."""
+
+    key: str
+
+
+class ApiKey(ApiKeyBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    key_hash: str = Field(max_length=128, index=True)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    revoked_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
 # Generic message
 class Message(SQLModel):
     message: str

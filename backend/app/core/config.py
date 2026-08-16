@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # 60 minutes * 24 hours * 8 days = 8 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+    # Prefix for API keys issued to external apps (e.g. "stack_<random>").
+    API_KEY_PREFIX: str = "stack"
     FRONTEND_HOST: str = "http://localhost:5173"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
     # Allow public self-registration via POST /api/v1/users/signup
