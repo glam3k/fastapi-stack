@@ -25,6 +25,7 @@ _registry: dict[str, type[Job]] = {}
 _manager: JobManager | None = None
 _worker: Worker | None = None
 _worker_thread: threading.Thread | None = None
+_scheduler_thread: threading.Thread | None = None
 
 
 def register(*job_cls: type[Job]) -> None:
@@ -110,23 +111,39 @@ def owner_tag(user_id: str | object) -> str:
 
 
 def start() -> None:
-    """Start the worker in a background thread. Idempotent."""
-    global _worker_thread
+    """Start the worker and scheduler beat in background threads. Idempotent.
+
+    Two loops are required: the *scheduler beat* fires due maintained jobs
+    into runs (``manager.run_forever``), and the *worker* executes those runs.
+    On-demand jobs only need the worker (their run is created at enqueue time),
+    which is why enqueues worked before the beat existed.
+    """
+    global _worker_thread, _scheduler_thread
     if _worker_thread is not None and _worker_thread.is_alive():
         return
     w = worker()
     _worker_thread = threading.Thread(target=w.run_forever, daemon=True)
     _worker_thread.start()
+    m = manager()
+    if _scheduler_thread is None or not _scheduler_thread.is_alive():
+        _scheduler_thread = threading.Thread(
+            target=m.run_forever, kwargs={"poll_interval": 5.0}, daemon=True
+        )
+        _scheduler_thread.start()
 
 
 def stop() -> None:
-    """Stop the worker and drain in-flight runs. Idempotent."""
-    global _worker_thread
-    if _worker_thread is None:
-        return
-    worker().stop()
-    _worker_thread.join(timeout=10)
-    _worker_thread = None
+    """Stop the scheduler beat and worker, draining in-flight runs."""
+    global _worker_thread, _scheduler_thread
+    m = manager()
+    m.stop()
+    if _worker_thread is not None:
+        worker().stop()
+        _worker_thread.join(timeout=10)
+        _worker_thread = None
+    if _scheduler_thread is not None:
+        _scheduler_thread.join(timeout=10)
+        _scheduler_thread = None
 
 
 def run_pending() -> None:
