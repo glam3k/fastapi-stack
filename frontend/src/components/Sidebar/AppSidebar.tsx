@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { Briefcase, Home, ListChecks, Users } from "lucide-react"
+import { Briefcase, Home, Users, Workflow } from "lucide-react"
 import { UtilsService } from "@/client"
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -16,7 +16,7 @@ import { User } from "./User"
 const baseItems: Item[] = [
   { icon: Home, title: "Dashboard", path: "/" },
   { icon: Briefcase, title: "Items", path: "/items" },
-  { icon: ListChecks, title: "Jobs", path: "/jobs" },
+  { icon: Workflow, title: "Jobs", path: "/jobs" },
 ]
 
 export function AppSidebar() {
