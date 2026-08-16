@@ -1,11 +1,13 @@
-import { Monitor, Moon, Sun } from "lucide-react"
+import { Check, Monitor, Moon, Sun } from "lucide-react"
 
-import { type Theme, useTheme } from "@/components/theme-provider"
+import { type Accent, type Theme, useTheme } from "@/components/theme-provider"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -13,6 +15,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { cn } from "@/lib/utils"
 
 type LucideIcon = React.FC<React.SVGProps<SVGSVGElement>>
 
@@ -20,6 +23,54 @@ const ICON_MAP: Record<Theme, LucideIcon> = {
   system: Monitor,
   light: Sun,
   dark: Moon,
+}
+
+const ACCENT_SWATCH: Record<Accent, string> = {
+  indigo: "bg-[oklch(0.6_0.18_280)]",
+  emerald: "bg-[oklch(0.55_0.16_160)]",
+  rose: "bg-[oklch(0.58_0.2_350)]",
+  amber: "bg-[oklch(0.66_0.16_85)]",
+  sky: "bg-[oklch(0.55_0.16_245)]",
+}
+
+const ACCENT_LABEL: Record<Accent, string> = {
+  indigo: "Indigo",
+  emerald: "Emerald",
+  rose: "Rose",
+  amber: "Amber",
+  sky: "Sky",
+}
+
+function AccentPicker() {
+  const { accent, setAccent } = useTheme()
+
+  return (
+    <>
+      <DropdownMenuSeparator />
+      <DropdownMenuLabel className="text-xs text-muted-foreground">
+        Accent color
+      </DropdownMenuLabel>
+      <div className="flex items-center gap-2 px-2 py-1.5">
+        {(Object.keys(ACCENT_SWATCH) as Accent[]).map((a) => (
+          <button
+            key={a}
+            type="button"
+            title={ACCENT_LABEL[a]}
+            data-testid={`accent-${a}`}
+            onClick={() => setAccent(a)}
+            className={cn(
+              "flex h-6 w-6 items-center justify-center rounded-full border border-transparent transition-transform hover:scale-110",
+              ACCENT_SWATCH[a],
+              accent === a &&
+                "ring-2 ring-ring ring-offset-2 ring-offset-background",
+            )}
+          >
+            {accent === a && <Check className="h-3.5 w-3.5 text-white" />}
+          </button>
+        ))}
+      </div>
+    </>
+  )
 }
 
 export const SidebarAppearance = () => {
@@ -60,6 +111,7 @@ export const SidebarAppearance = () => {
             <Monitor className="mr-2 h-4 w-4" />
             System
           </DropdownMenuItem>
+          <AccentPicker />
         </DropdownMenuContent>
       </DropdownMenu>
     </SidebarMenuItem>
@@ -98,6 +150,7 @@ export const Appearance = () => {
             <Monitor className="mr-2 h-4 w-4" />
             System
           </DropdownMenuItem>
+          <AccentPicker />
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
