@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -p tsconfig.build.json && vite build",
+    "build": "bash ../scripts/generate-client.sh || echo \"SDK gen skipped\"; tsc -p tsconfig.build.json && vite build",
     "lint": "biome check --write --unsafe --no-errors-on-unmatched --files-ignore-unknown=true ./",
     "preview": "vite preview",
     "generate-client": "openapi-ts",
     "test": "bunx playwright test",
-    "test:ui": "bunx playwright test --ui"
+    "test:ui": "bunx playwright test --ui",
+    "prebuild": "bash ../scripts/generate-client.sh || echo \"SDK gen skipped - uv missing\""
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
