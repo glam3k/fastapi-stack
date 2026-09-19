@@ -177,7 +177,7 @@ def list_runs(
         )
         if conditions:
             count_stmt = count_stmt.where(*conditions)
-        total = session.exec(count_stmt).one()
+        total = session.exec(count_stmt).one()[0]
 
         stmt = (
             select(RunModel, JobModel)
@@ -216,7 +216,7 @@ def list_scheduled_jobs(
         count_stmt = select(func.count()).select_from(JobModel)
         if conditions:
             count_stmt = count_stmt.where(*conditions)
-        total = session.exec(count_stmt).one()
+        total = session.exec(count_stmt).one()[0]
 
         stmt = select(JobModel).order_by(JobModel.id.asc())
         if conditions:
