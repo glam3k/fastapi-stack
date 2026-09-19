@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import {
   Activity,
@@ -7,7 +7,7 @@ import {
   Rocket,
   Search,
 } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { JobsService, type RunOut } from "@/client"
 import { Badge } from "@/components/ui/badge"
@@ -131,41 +131,66 @@ function ScheduledSection() {
   const { user: currentUser } = useAuth()
   const [searchInput, setSearchInput] = useState("")
   const [appliedSearch, setAppliedSearch] = useState("")
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const prevSearchRef = useRef<string>("")
+  const [items, setItems] = useState<any[]>([])
+  const [totalCount, setTotalCount] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+
+  const nextOffsetRef = useRef(0)
+  const searchRef = useRef("")
+  const tagRef = useRef<string | undefined>(undefined)
 
   const tag = currentUser?.is_superuser
     ? undefined
     : ownerTag(currentUser?.id ?? "")
 
-  const { data, isPending } = useQuery({
-    queryKey: ["jobs", "scheduled", tag, appliedSearch],
-    queryFn: () =>
-      (JobsService as any).listScheduledJobs({
-        tag,
-        search: appliedSearch || undefined,
-        skip: 0,
-        limit: 1000,
-      }),
-    refetchInterval: 5000,
-  })
+  const loadItems = useCallback(
+    async (replace = true) => {
+      const setter = replace ? setLoading : setLoadingMore
+      setter(true)
+      try {
+        const skip = replace ? 0 : nextOffsetRef.current
+        const response = await (JobsService as any).listScheduledJobs({
+          tag: tagRef.current,
+          search: searchRef.current || undefined,
+          skip,
+          limit: PAGE_SIZE,
+        })
+        if (replace) {
+          setItems(response.data)
+        } else {
+          setItems((prev) => [...prev, ...response.data])
+        }
+        setTotalCount(response.count)
+        nextOffsetRef.current = skip + response.data.length
+        setHasMore(skip + response.data.length < response.count)
+      } catch (err) {
+        console.error("Failed to load scheduled jobs:", err)
+      } finally {
+        setter(false)
+      }
+    },
+    [],
+  )
 
-  const allItems = data?.data ?? []
-  const totalCount = data?.count ?? 0
-  const items = allItems.slice(0, visibleCount)
-  const hasMore = items.length < totalCount
+  const loadMore = useCallback(() => {
+    if (!loadingMore && hasMore) loadItems(false)
+  }, [loadingMore, hasMore, loadItems])
 
   useEffect(() => {
-    if (appliedSearch !== prevSearchRef.current) {
-      prevSearchRef.current = appliedSearch
-      setVisibleCount(PAGE_SIZE)
-    }
-  }, [appliedSearch])
+    tagRef.current = tag
+    searchRef.current = appliedSearch
+    loadItems(true)
+  }, [tag, appliedSearch, loadItems])
 
-  const loadMore = () => setVisibleCount((c) => c + PAGE_SIZE)
+  useEffect(() => {
+    const interval = setInterval(() => loadItems(true), 5000)
+    return () => clearInterval(interval)
+  }, [loadItems])
 
   return (
-    <Card>
+    <Card className="h-fit">
       <CardHeader className="py-3">
         <div className="flex items-center justify-between">
           <div>
@@ -185,27 +210,21 @@ function ScheduledSection() {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                setVisibleCount(PAGE_SIZE)
-                setAppliedSearch(searchInput.trim())
-              }
+              if (e.key === "Enter") setAppliedSearch(searchInput.trim())
             }}
             className="pl-8 pr-16 h-8 text-sm"
           />
           <Button
             size="sm"
             className="absolute right-1 top-1/2 h-6 -translate-y-1/2 px-2 text-xs"
-            onClick={() => {
-              setVisibleCount(PAGE_SIZE)
-              setAppliedSearch(searchInput.trim())
-            }}
+            onClick={() => setAppliedSearch(searchInput.trim())}
           >
             Search
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-1">
-        {isPending ? (
+        {loading ? (
           <div className="space-y-2">
             {Array.from({ length: 3 }).map((_, i) => (
               <div
@@ -236,9 +255,18 @@ function ScheduledSection() {
             ))}
             {hasMore && (
               <div className="flex justify-center pt-2">
-                <Button variant="outline" size="sm" onClick={loadMore}>
-                  <ChevronDown className="h-4 w-4" />
-                  Load More ({items.length} of {totalCount})
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                >
+                  <ChevronDown
+                    className={cn("h-4 w-4", loadingMore && "animate-pulse")}
+                  />
+                  {loadingMore
+                    ? "Loading..."
+                    : `Load More (${items.length} of ${totalCount})`}
                 </Button>
               </div>
             )}
@@ -255,48 +283,72 @@ function ScheduledSection() {
 
 function RunsSection() {
   const { user: currentUser } = useAuth()
-  const queryClient = useQueryClient()
   const [enqueueError, setEnqueueError] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState("")
   const [appliedSearch, setAppliedSearch] = useState("")
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const prevSearchRef = useRef<string>("")
+  const [items, setItems] = useState<RunOut[]>([])
+  const [totalCount, setTotalCount] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+
+  const nextOffsetRef = useRef(0)
+  const searchRef = useRef("")
+  const tagRef = useRef<string | undefined>(undefined)
 
   const tag = currentUser?.is_superuser
     ? undefined
     : ownerTag(currentUser?.id ?? "")
 
-  const { data, refetch, isFetching, isPending } = useQuery({
-    queryKey: ["jobs", "runs", tag, appliedSearch],
-    queryFn: () =>
-      JobsService.listRuns({
-        tag,
-        search: appliedSearch || undefined,
-        skip: 0,
-        limit: 1000,
-      }),
-    refetchInterval: 5000,
-  })
+  const loadItems = useCallback(
+    async (replace = true) => {
+      const setter = replace ? setLoading : setLoadingMore
+      setter(true)
+      try {
+        const skip = replace ? 0 : nextOffsetRef.current
+        const response = await JobsService.listRuns({
+          tag: tagRef.current,
+          search: searchRef.current || undefined,
+          skip,
+          limit: PAGE_SIZE,
+        })
+        if (replace) {
+          setItems(response.data)
+        } else {
+          setItems((prev) => [...prev, ...response.data])
+        }
+        setTotalCount(response.count)
+        nextOffsetRef.current = skip + response.data.length
+        setHasMore(skip + response.data.length < response.count)
+      } catch (err) {
+        console.error("Failed to load runs:", err)
+      } finally {
+        setter(false)
+      }
+    },
+    [],
+  )
 
-  const allItems = data?.data ?? []
-  const totalCount = data?.count ?? 0
-  const items = allItems.slice(0, visibleCount)
-  const hasMore = items.length < totalCount
+  const loadMore = useCallback(() => {
+    if (!loadingMore && hasMore) loadItems(false)
+  }, [loadingMore, hasMore, loadItems])
 
   useEffect(() => {
-    if (appliedSearch !== prevSearchRef.current) {
-      prevSearchRef.current = appliedSearch
-      setVisibleCount(PAGE_SIZE)
-    }
-  }, [appliedSearch])
+    tagRef.current = tag
+    searchRef.current = appliedSearch
+    loadItems(true)
+  }, [tag, appliedSearch, loadItems])
 
-  const loadMore = () => setVisibleCount((c) => c + PAGE_SIZE)
+  useEffect(() => {
+    const interval = setInterval(() => loadItems(true), 5000)
+    return () => clearInterval(interval)
+  }, [loadItems])
 
   const enqueueMutation = useMutation({
     mutationFn: () => JobsService.enqueueHelloWorld({ requestBody: {} }),
     onSuccess: () => {
       setEnqueueError(null)
-      queryClient.invalidateQueries({ queryKey: ["jobs", "runs"] })
+      loadItems(true)
     },
     onError: () => setEnqueueError("Failed to enqueue the job"),
   })
@@ -337,11 +389,11 @@ function RunsSection() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => refetch()}
-            disabled={isFetching}
+            onClick={() => loadItems(true)}
+            disabled={loading}
           >
             <RefreshCw
-              className={cn("h-4 w-4", isFetching && "animate-spin")}
+              className={cn("h-4 w-4", loading && "animate-spin")}
             />
             Refresh
           </Button>
@@ -355,20 +407,14 @@ function RunsSection() {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              setVisibleCount(PAGE_SIZE)
-              setAppliedSearch(searchInput.trim())
-            }
+            if (e.key === "Enter") setAppliedSearch(searchInput.trim())
           }}
           className="pl-8 pr-16 h-8 text-sm"
         />
         <Button
           size="sm"
           className="absolute right-1 top-1/2 h-6 -translate-y-1/2 px-2 text-xs"
-          onClick={() => {
-            setVisibleCount(PAGE_SIZE)
-            setAppliedSearch(searchInput.trim())
-          }}
+          onClick={() => setAppliedSearch(searchInput.trim())}
         >
           Search
         </Button>
@@ -387,7 +433,7 @@ function RunsSection() {
         </div>
       )}
 
-      {isPending ? (
+      {loading ? (
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
             <div
@@ -415,9 +461,18 @@ function RunsSection() {
           </div>
           {hasMore && (
             <div className="flex justify-center pt-2">
-              <Button variant="outline" size="sm" onClick={loadMore}>
-                <ChevronDown className="h-4 w-4" />
-                Load More ({items.length} of {totalCount})
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadMore}
+                disabled={loadingMore}
+              >
+                <ChevronDown
+                  className={cn("h-4 w-4", loadingMore && "animate-pulse")}
+                />
+                {loadingMore
+                  ? "Loading..."
+                  : `Load More (${items.length} of ${totalCount})`}
               </Button>
             </div>
           )}
