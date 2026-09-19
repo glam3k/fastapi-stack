@@ -7,7 +7,7 @@ import {
   Rocket,
   Search,
 } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import { JobsService, type RunOut } from "@/client"
 import { Badge } from "@/components/ui/badge"
@@ -131,28 +131,38 @@ function ScheduledSection() {
   const { user: currentUser } = useAuth()
   const [searchInput, setSearchInput] = useState("")
   const [appliedSearch, setAppliedSearch] = useState("")
-  const [offset, setOffset] = useState(0)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const prevSearchRef = useRef<string>("")
 
   const tag = currentUser?.is_superuser
     ? undefined
     : ownerTag(currentUser?.id ?? "")
 
   const { data, isPending } = useQuery({
-    queryKey: ["jobs", "scheduled", tag, appliedSearch, offset],
+    queryKey: ["jobs", "scheduled", tag, appliedSearch],
     queryFn: () =>
       (JobsService as any).listScheduledJobs({
         tag,
         search: appliedSearch || undefined,
-        skip: offset,
-        limit: PAGE_SIZE,
+        skip: 0,
+        limit: 1000,
       }),
     refetchInterval: 5000,
-    placeholderData: (prev) => prev,
   })
 
-  const items = data?.data ?? []
+  const allItems = data?.data ?? []
   const totalCount = data?.count ?? 0
-  const hasMore = offset + items.length < totalCount
+  const items = allItems.slice(0, visibleCount)
+  const hasMore = items.length < totalCount
+
+  useEffect(() => {
+    if (appliedSearch !== prevSearchRef.current) {
+      prevSearchRef.current = appliedSearch
+      setVisibleCount(PAGE_SIZE)
+    }
+  }, [appliedSearch])
+
+  const loadMore = () => setVisibleCount((c) => c + PAGE_SIZE)
 
   return (
     <Card>
@@ -176,7 +186,7 @@ function ScheduledSection() {
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                setOffset(0)
+                setVisibleCount(PAGE_SIZE)
                 setAppliedSearch(searchInput.trim())
               }
             }}
@@ -186,7 +196,7 @@ function ScheduledSection() {
             size="sm"
             className="absolute right-1 top-1/2 h-6 -translate-y-1/2 px-2 text-xs"
             onClick={() => {
-              setOffset(0)
+              setVisibleCount(PAGE_SIZE)
               setAppliedSearch(searchInput.trim())
             }}
           >
@@ -226,11 +236,7 @@ function ScheduledSection() {
             ))}
             {hasMore && (
               <div className="flex justify-center pt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setOffset((o) => o + items.length)}
-                >
+                <Button variant="outline" size="sm" onClick={loadMore}>
                   <ChevronDown className="h-4 w-4" />
                   Load More ({items.length} of {totalCount})
                 </Button>
@@ -253,34 +259,43 @@ function RunsSection() {
   const [enqueueError, setEnqueueError] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState("")
   const [appliedSearch, setAppliedSearch] = useState("")
-  const [offset, setOffset] = useState(0)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const prevSearchRef = useRef<string>("")
 
   const tag = currentUser?.is_superuser
     ? undefined
     : ownerTag(currentUser?.id ?? "")
 
   const { data, refetch, isFetching, isPending } = useQuery({
-    queryKey: ["jobs", "runs", tag, appliedSearch, offset],
+    queryKey: ["jobs", "runs", tag, appliedSearch],
     queryFn: () =>
       JobsService.listRuns({
         tag,
         search: appliedSearch || undefined,
-        skip: offset,
-        limit: PAGE_SIZE,
+        skip: 0,
+        limit: 1000,
       }),
     refetchInterval: 5000,
-    placeholderData: (prev) => prev,
   })
 
-  const items = data?.data ?? []
+  const allItems = data?.data ?? []
   const totalCount = data?.count ?? 0
-  const hasMore = offset + items.length < totalCount
+  const items = allItems.slice(0, visibleCount)
+  const hasMore = items.length < totalCount
+
+  useEffect(() => {
+    if (appliedSearch !== prevSearchRef.current) {
+      prevSearchRef.current = appliedSearch
+      setVisibleCount(PAGE_SIZE)
+    }
+  }, [appliedSearch])
+
+  const loadMore = () => setVisibleCount((c) => c + PAGE_SIZE)
 
   const enqueueMutation = useMutation({
     mutationFn: () => JobsService.enqueueHelloWorld({ requestBody: {} }),
     onSuccess: () => {
       setEnqueueError(null)
-      setOffset(0)
       queryClient.invalidateQueries({ queryKey: ["jobs", "runs"] })
     },
     onError: () => setEnqueueError("Failed to enqueue the job"),
@@ -341,7 +356,7 @@ function RunsSection() {
           onChange={(e) => setSearchInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              setOffset(0)
+              setVisibleCount(PAGE_SIZE)
               setAppliedSearch(searchInput.trim())
             }
           }}
@@ -351,7 +366,7 @@ function RunsSection() {
           size="sm"
           className="absolute right-1 top-1/2 h-6 -translate-y-1/2 px-2 text-xs"
           onClick={() => {
-            setOffset(0)
+            setVisibleCount(PAGE_SIZE)
             setAppliedSearch(searchInput.trim())
           }}
         >
@@ -400,11 +415,7 @@ function RunsSection() {
           </div>
           {hasMore && (
             <div className="flex justify-center pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setOffset((o) => o + items.length)}
-              >
+              <Button variant="outline" size="sm" onClick={loadMore}>
                 <ChevronDown className="h-4 w-4" />
                 Load More ({items.length} of {totalCount})
               </Button>
