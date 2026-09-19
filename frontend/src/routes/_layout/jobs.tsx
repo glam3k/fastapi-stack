@@ -185,7 +185,9 @@ function ScheduledSection() {
   }, [tag, appliedSearch, loadItems])
 
   useEffect(() => {
-    const interval = setInterval(() => loadItems(true), 5000)
+    const interval = setInterval(() => {
+      if (nextOffsetRef.current <= PAGE_SIZE) loadItems(true)
+    }, 5000)
     return () => clearInterval(interval)
   }, [loadItems])
 
@@ -340,7 +342,9 @@ function RunsSection() {
   }, [tag, appliedSearch, loadItems])
 
   useEffect(() => {
-    const interval = setInterval(() => loadItems(true), 5000)
+    const interval = setInterval(() => {
+      if (nextOffsetRef.current <= PAGE_SIZE) loadItems(true)
+    }, 5000)
     return () => clearInterval(interval)
   }, [loadItems])
 
