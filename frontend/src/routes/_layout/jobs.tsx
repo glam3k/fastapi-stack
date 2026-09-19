@@ -1,6 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import { Activity, RefreshCw, Rocket } from "lucide-react"
+import {
+  Activity,
+  ChevronDown,
+  RefreshCw,
+  Rocket,
+  Search,
+} from "lucide-react"
 import { useMemo, useState } from "react"
 
 import { JobsService, type RunOut } from "@/client"
@@ -8,10 +14,12 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import useAuth from "@/hooks/useAuth"
 import { ownerTag } from "@/lib/jobs"
 import { cn } from "@/lib/utils"
@@ -117,30 +125,162 @@ function RunCard({ run }: { run: RunOut }) {
   )
 }
 
-function RunsList() {
+const PAGE_SIZE = 50
+
+function ScheduledSection() {
+  const { user: currentUser } = useAuth()
+  const [searchInput, setSearchInput] = useState("")
+  const [appliedSearch, setAppliedSearch] = useState("")
+  const [offset, setOffset] = useState(0)
+
+  const tag = currentUser?.is_superuser
+    ? undefined
+    : ownerTag(currentUser?.id ?? "")
+
+  const { data, isPending } = useQuery({
+    queryKey: ["jobs", "scheduled", tag, appliedSearch, offset],
+    queryFn: () =>
+      (JobsService as any).listScheduledJobs({
+        tag,
+        search: appliedSearch || undefined,
+        skip: offset,
+        limit: PAGE_SIZE,
+      }),
+    refetchInterval: 5000,
+    placeholderData: (prev) => prev,
+  })
+
+  const items = data?.data ?? []
+  const totalCount = data?.count ?? 0
+  const hasMore = offset + items.length < totalCount
+
+  return (
+    <Card>
+      <CardHeader className="py-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base">Scheduled Jobs</CardTitle>
+            <CardDescription>
+              Maintained jobs and when they run next
+            </CardDescription>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {totalCount} job{totalCount !== 1 ? "s" : ""}
+          </span>
+        </div>
+        <div className="relative mt-2">
+          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search scheduled jobs..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setOffset(0)
+                setAppliedSearch(searchInput.trim())
+              }
+            }}
+            className="pl-8 pr-16 h-8 text-sm"
+          />
+          <Button
+            size="sm"
+            className="absolute right-1 top-1/2 h-6 -translate-y-1/2 px-2 text-xs"
+            onClick={() => {
+              setOffset(0)
+              setAppliedSearch(searchInput.trim())
+            }}
+          >
+            Search
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-1">
+        {isPending ? (
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-10 w-full animate-pulse rounded-md bg-muted"
+              />
+            ))}
+          </div>
+        ) : items.length > 0 ? (
+          <>
+            {items.map((job: any) => (
+              <div
+                key={job.id ?? job.job}
+                className="flex items-center justify-between gap-2 text-sm rounded-md px-2 py-1"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <Badge variant="secondary" className="shrink-0">
+                    {job.status}
+                  </Badge>
+                  <span className="truncate">{shortName(job.job)}</span>
+                </div>
+                <span className="text-xs text-muted-foreground shrink-0">
+                  {job.next_run_at
+                    ? `next ${formatTime(job.next_run_at)}`
+                    : "no next run"}
+                </span>
+              </div>
+            ))}
+            {hasMore && (
+              <div className="flex justify-center pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setOffset((o) => o + items.length)}
+                >
+                  <ChevronDown className="h-4 w-4" />
+                  Load More ({items.length} of {totalCount})
+                </Button>
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="text-sm text-muted-foreground py-2">
+            No scheduled jobs
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function RunsSection() {
   const { user: currentUser } = useAuth()
   const queryClient = useQueryClient()
   const [enqueueError, setEnqueueError] = useState<string | null>(null)
+  const [searchInput, setSearchInput] = useState("")
+  const [appliedSearch, setAppliedSearch] = useState("")
+  const [offset, setOffset] = useState(0)
 
-  const {
-    data: runs,
-    refetch,
-    isFetching,
-  } = useQuery({
-    queryKey: ["jobs", "runs"],
+  const tag = currentUser?.is_superuser
+    ? undefined
+    : ownerTag(currentUser?.id ?? "")
+
+  const { data, refetch, isFetching, isPending } = useQuery({
+    queryKey: ["jobs", "runs", tag, appliedSearch, offset],
     queryFn: () =>
       JobsService.listRuns({
-        tag: currentUser?.is_superuser
-          ? undefined
-          : ownerTag(currentUser?.id ?? ""),
+        tag,
+        search: appliedSearch || undefined,
+        skip: offset,
+        limit: PAGE_SIZE,
       }),
     refetchInterval: 5000,
+    placeholderData: (prev) => prev,
   })
+
+  const items = data?.data ?? []
+  const totalCount = data?.count ?? 0
+  const hasMore = offset + items.length < totalCount
 
   const enqueueMutation = useMutation({
     mutationFn: () => JobsService.enqueueHelloWorld({ requestBody: {} }),
     onSuccess: () => {
       setEnqueueError(null)
+      setOffset(0)
       queryClient.invalidateQueries({ queryKey: ["jobs", "runs"] })
     },
     onError: () => setEnqueueError("Failed to enqueue the job"),
@@ -148,18 +288,18 @@ function RunsList() {
 
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {}
-    for (const run of runs ?? []) {
+    for (const run of items) {
       counts[run.status] = (counts[run.status] ?? 0) + 1
     }
     return counts
-  }, [runs])
+  }, [items])
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {runs?.length ?? 0} run{(runs?.length ?? 0) !== 1 ? "s" : ""} ·
-          auto-refreshes every 5s
+          {totalCount} run{totalCount !== 1 ? "s" : ""} · auto-refreshes every
+          5s
         </p>
         <div className="flex items-center gap-2">
           {enqueueError && (
@@ -193,7 +333,33 @@ function RunsList() {
         </div>
       </div>
 
-      {runs && runs.length > 0 && (
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search runs..."
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              setOffset(0)
+              setAppliedSearch(searchInput.trim())
+            }
+          }}
+          className="pl-8 pr-16 h-8 text-sm"
+        />
+        <Button
+          size="sm"
+          className="absolute right-1 top-1/2 h-6 -translate-y-1/2 px-2 text-xs"
+          onClick={() => {
+            setOffset(0)
+            setAppliedSearch(searchInput.trim())
+          }}
+        >
+          Search
+        </Button>
+      </div>
+
+      {items.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {Object.entries(statusCounts).map(([status, count]) => (
             <Badge
@@ -206,7 +372,16 @@ function RunsList() {
         </div>
       )}
 
-      {!runs || runs.length === 0 ? (
+      {isPending ? (
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-24 w-full animate-pulse rounded-md bg-muted"
+            />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center py-12">
           <div className="rounded-full bg-muted p-4 mb-4">
             <Activity className="h-8 w-8 text-muted-foreground" />
@@ -217,11 +392,25 @@ function RunsList() {
           </p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {runs.map((run: RunOut) => (
-            <RunCard key={run.id} run={run} />
-          ))}
-        </div>
+        <>
+          <div className="space-y-2">
+            {items.map((run: RunOut) => (
+              <RunCard key={run.id} run={run} />
+            ))}
+          </div>
+          {hasMore && (
+            <div className="flex justify-center pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setOffset((o) => o + items.length)}
+              >
+                <ChevronDown className="h-4 w-4" />
+                Load More ({items.length} of {totalCount})
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
@@ -238,7 +427,8 @@ function Jobs() {
           </p>
         </div>
       </div>
-      <RunsList />
+      <ScheduledSection />
+      <RunsSection />
     </div>
   )
 }
