@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ApiKeysListApiKeysResponse, ApiKeysCreateApiKeyData, ApiKeysCreateApiKeyResponse, ApiKeysRevokeApiKeyData, ApiKeysRevokeApiKeyResponse, ItemsReadItemTagsResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, JobsListRunsData, JobsListRunsResponse, JobsEnqueueHelloWorldData, JobsEnqueueHelloWorldResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UploadsUploadPhotoEndpointData, UploadsUploadPhotoEndpointResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsAppVersionResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { ApiKeysListApiKeysResponse, ApiKeysCreateApiKeyData, ApiKeysCreateApiKeyResponse, ApiKeysRevokeApiKeyData, ApiKeysRevokeApiKeyResponse, ItemsReadItemTagsResponse, ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, JobsListRunsData, JobsListRunsResponse, JobsListScheduledJobsData, JobsListScheduledJobsResponse, JobsEnqueueHelloWorldData, JobsEnqueueHelloWorldResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UploadsUploadPhotoEndpointData, UploadsUploadPhotoEndpointResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsAppVersionResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class ApiKeysService {
     /**
@@ -205,13 +205,13 @@ export class JobsService {
      * List Runs
      * List runs, newest first, with their owning job's context and task state.
      *
-     * Requires authentication. Pass ``tag`` (e.g. ``user:<id>``) to scope to a
-     * specific owner; superusers may omit it to list all runs.
+     * Non-superusers are always restricted to their own runs.
      * @param data The data for the request.
      * @param data.tag
+     * @param data.search
      * @param data.limit
-     * @param data.offset
-     * @returns RunOut Successful Response
+     * @param data.skip
+     * @returns RunsResponse Successful Response
      * @throws ApiError
      */
     public static listRuns(data: JobsListRunsData = {}): CancelablePromise<JobsListRunsResponse> {
@@ -220,8 +220,36 @@ export class JobsService {
             url: '/api/v1/jobs/',
             query: {
                 tag: data.tag,
+                search: data.search,
                 limit: data.limit,
-                offset: data.offset
+                skip: data.skip
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * List Scheduled Jobs
+     * List the maintained (recurring) jobs and their next run time.
+     * @param data The data for the request.
+     * @param data.tag
+     * @param data.search
+     * @param data.limit
+     * @param data.skip
+     * @returns ScheduledResponse Successful Response
+     * @throws ApiError
+     */
+    public static listScheduledJobs(data: JobsListScheduledJobsData = {}): CancelablePromise<JobsListScheduledJobsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/jobs/scheduled/',
+            query: {
+                tag: data.tag,
+                search: data.search,
+                limit: data.limit,
+                skip: data.skip
             },
             errors: {
                 422: 'Validation Error'

@@ -197,8 +197,12 @@ function ItemsTableContent() {
             />
             {tagDropdownOpen && (
               <>
-                <div
-                  className="fixed inset-0 z-40"
+                {/* The backdrop: clicking it closes the dropdown. It is a
+                    button so it is reachable from the keyboard too. */}
+                <button
+                  type="button"
+                  aria-label="Close the tag filter"
+                  className="fixed inset-0 z-40 cursor-default"
                   onClick={() => setTagDropdownOpen(false)}
                 />
                 <div className="absolute z-50 mt-1 w-full rounded-md border bg-background shadow-md max-h-48 overflow-y-auto">

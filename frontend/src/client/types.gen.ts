@@ -108,6 +108,29 @@ export type RunOut = {
     tasks?: Array<TaskOut>;
 };
 
+export type RunsResponse = {
+    data: Array<RunOut>;
+    count: number;
+};
+
+export type ScheduledJobOut = {
+    id?: (number | null);
+    job: string;
+    status: string;
+    args?: ({
+    [key: string]: unknown;
+} | null);
+    tags?: (Array<(string)> | null);
+    next_run_at?: (string | null);
+    created_at?: (string | null);
+    updated_at?: (string | null);
+};
+
+export type ScheduledResponse = {
+    data: Array<ScheduledJobOut>;
+    count: number;
+};
+
 export type TagCount = {
     name: string;
     count: number;
@@ -240,11 +263,21 @@ export type ItemsDeleteItemResponse = (Message);
 
 export type JobsListRunsData = {
     limit?: number;
-    offset?: number;
+    search?: (string | null);
+    skip?: number;
     tag?: (string | null);
 };
 
-export type JobsListRunsResponse = (Array<RunOut>);
+export type JobsListRunsResponse = (RunsResponse);
+
+export type JobsListScheduledJobsData = {
+    limit?: number;
+    search?: (string | null);
+    skip?: number;
+    tag?: (string | null);
+};
+
+export type JobsListScheduledJobsResponse = (ScheduledResponse);
 
 export type JobsEnqueueHelloWorldData = {
     requestBody: HelloWorldRunIn;

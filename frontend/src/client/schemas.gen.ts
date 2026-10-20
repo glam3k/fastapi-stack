@@ -597,6 +597,133 @@ export const RunOutSchema = {
     title: 'RunOut'
 } as const;
 
+export const RunsResponseSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/RunOut'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'RunsResponse'
+} as const;
+
+export const ScheduledJobOutSchema = {
+    properties: {
+        id: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Id'
+        },
+        job: {
+            type: 'string',
+            title: 'Job'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        args: {
+            anyOf: [
+                {
+                    additionalProperties: true,
+                    type: 'object'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Args'
+        },
+        tags: {
+            anyOf: [
+                {
+                    items: {
+                        type: 'string'
+                    },
+                    type: 'array'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Tags'
+        },
+        next_run_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Next Run At'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        },
+        updated_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Updated At'
+        }
+    },
+    type: 'object',
+    required: ['job', 'status'],
+    title: 'ScheduledJobOut'
+} as const;
+
+export const ScheduledResponseSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ScheduledJobOut'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'ScheduledResponse'
+} as const;
+
 export const TagCountSchema = {
     properties: {
         name: {

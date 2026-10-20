@@ -1,12 +1,6 @@
 import { useMutation } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
-import {
-  Activity,
-  ChevronDown,
-  RefreshCw,
-  Rocket,
-  Search,
-} from "lucide-react"
+import { Activity, ChevronDown, RefreshCw, Rocket, Search } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { JobsService, type RunOut } from "@/client"
@@ -145,34 +139,31 @@ function ScheduledSection() {
     ? undefined
     : ownerTag(currentUser?.id ?? "")
 
-  const loadItems = useCallback(
-    async (replace = true) => {
-      const setter = replace ? setLoading : setLoadingMore
-      setter(true)
-      try {
-        const skip = replace ? 0 : nextOffsetRef.current
-        const response = await (JobsService as any).listScheduledJobs({
-          tag: tagRef.current,
-          search: searchRef.current || undefined,
-          skip,
-          limit: PAGE_SIZE,
-        })
-        if (replace) {
-          setItems(response.data)
-        } else {
-          setItems((prev) => [...prev, ...response.data])
-        }
-        setTotalCount(response.count)
-        nextOffsetRef.current = skip + response.data.length
-        setHasMore(skip + response.data.length < response.count)
-      } catch (err) {
-        console.error("Failed to load scheduled jobs:", err)
-      } finally {
-        setter(false)
+  const loadItems = useCallback(async (replace = true) => {
+    const setter = replace ? setLoading : setLoadingMore
+    setter(true)
+    try {
+      const skip = replace ? 0 : nextOffsetRef.current
+      const response = await (JobsService as any).listScheduledJobs({
+        tag: tagRef.current,
+        search: searchRef.current || undefined,
+        skip,
+        limit: PAGE_SIZE,
+      })
+      if (replace) {
+        setItems(response.data)
+      } else {
+        setItems((prev) => [...prev, ...response.data])
       }
-    },
-    [],
-  )
+      setTotalCount(response.count)
+      nextOffsetRef.current = skip + response.data.length
+      setHasMore(skip + response.data.length < response.count)
+    } catch (err) {
+      console.error("Failed to load scheduled jobs:", err)
+    } finally {
+      setter(false)
+    }
+  }, [])
 
   const loadMore = useCallback(() => {
     if (!loadingMore && hasMore) loadItems(false)
@@ -302,34 +293,31 @@ function RunsSection() {
     ? undefined
     : ownerTag(currentUser?.id ?? "")
 
-  const loadItems = useCallback(
-    async (replace = true) => {
-      const setter = replace ? setLoading : setLoadingMore
-      setter(true)
-      try {
-        const skip = replace ? 0 : nextOffsetRef.current
-        const response = await JobsService.listRuns({
-          tag: tagRef.current,
-          search: searchRef.current || undefined,
-          skip,
-          limit: PAGE_SIZE,
-        })
-        if (replace) {
-          setItems(response.data)
-        } else {
-          setItems((prev) => [...prev, ...response.data])
-        }
-        setTotalCount(response.count)
-        nextOffsetRef.current = skip + response.data.length
-        setHasMore(skip + response.data.length < response.count)
-      } catch (err) {
-        console.error("Failed to load runs:", err)
-      } finally {
-        setter(false)
+  const loadItems = useCallback(async (replace = true) => {
+    const setter = replace ? setLoading : setLoadingMore
+    setter(true)
+    try {
+      const skip = replace ? 0 : nextOffsetRef.current
+      const response = await JobsService.listRuns({
+        tag: tagRef.current,
+        search: searchRef.current || undefined,
+        skip,
+        limit: PAGE_SIZE,
+      })
+      if (replace) {
+        setItems(response.data)
+      } else {
+        setItems((prev) => [...prev, ...response.data])
       }
-    },
-    [],
-  )
+      setTotalCount(response.count)
+      nextOffsetRef.current = skip + response.data.length
+      setHasMore(skip + response.data.length < response.count)
+    } catch (err) {
+      console.error("Failed to load runs:", err)
+    } finally {
+      setter(false)
+    }
+  }, [])
 
   const loadMore = useCallback(() => {
     if (!loadingMore && hasMore) loadItems(false)
@@ -396,9 +384,7 @@ function RunsSection() {
             onClick={() => loadItems(true)}
             disabled={loading}
           >
-            <RefreshCw
-              className={cn("h-4 w-4", loading && "animate-spin")}
-            />
+            <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
             Refresh
           </Button>
         </div>
