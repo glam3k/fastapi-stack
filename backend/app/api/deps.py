@@ -61,18 +61,27 @@ def _looks_like_jwt(token: str) -> bool:
 
 
 def _get_user_by_api_key(session: SessionDep, token: str) -> User | None:
-    """Resolve a user from a valid, non-revoked API key."""
-    from sqlmodel import select
+    """Resolve a user from a valid, non-revoked API key.
 
-    from app.core.security import verify_password
+    The key carries its own id, so this is **one indexed row and one hash
+    comparison**. It used to scan every key in the table and run a slow
+    password hash on each — so an unauthenticated request carrying a made-up
+    token cost a full table scan of password hashes. That is a
+    denial-of-service lever, and it was reachable without a credential.
+    """
+    from app.core.security import parse_api_key, verify_api_key
     from app.models import ApiKey
 
-    keys = session.exec(select(ApiKey).where(ApiKey.revoked_at.is_(None))).all()
-    for api_key in keys:
-        ok, _ = verify_password(token, api_key.key_hash)
-        if ok:
-            return session.get(User, api_key.user_id)
-    return None
+    parsed = parse_api_key(token)
+    if parsed is None:
+        return None
+    key_id, secret = parsed
+    api_key = session.get(ApiKey, key_id)
+    if api_key is None or api_key.revoked_at is not None:
+        return None
+    if not verify_api_key(secret, api_key.key_hash):
+        return None
+    return session.get(User, api_key.user_id)
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]

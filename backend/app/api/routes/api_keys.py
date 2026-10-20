@@ -8,15 +8,14 @@ everywhere a user JWT does (see ``app.api.deps.get_current_user``).
 
 from __future__ import annotations
 
-import secrets
+import uuid
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sqlmodel import col, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.core.config import settings
-from app.core.security import get_password_hash
+from app.core.security import generate_api_key, hash_api_key, parse_api_key
 from app.models import ApiKey, ApiKeyCreated, ApiKeyPublic, Message
 
 router = APIRouter(prefix="/api-keys", tags=["api-keys"])
@@ -26,8 +25,9 @@ class ApiKeyCreateIn(BaseModel):
     name: str
 
 
-def _generate_key() -> str:
-    return f"{settings.API_KEY_PREFIX}_{secrets.token_urlsafe(32)}"
+def _generate_key(key_id: uuid.UUID) -> str:
+    """A new API key, carrying its own id so it can be looked up in one row."""
+    return generate_api_key(key_id)
 
 
 def _to_public(key: ApiKey) -> ApiKeyPublic:
@@ -58,11 +58,16 @@ def create_api_key(
     name = payload.name.strip()
     if not name or len(name) > 100:
         raise HTTPException(status_code=400, detail="name is required (max 100 chars)")
-    key = _generate_key()
+    # The id goes into the key itself, so the lookup never has to scan.
+    key_id = uuid.uuid4()
+    key = _generate_key(key_id)
     api_key = ApiKey(
+        id=key_id,
         user_id=current_user.id,
         name=name,
-        key_hash=get_password_hash(key),
+        # A fast hash of the *secret* part: the secret is 256 bits of random
+        # noise, not a password, and the id part is not a secret at all.
+        key_hash=hash_api_key(parse_api_key(key)[1]),
     )
     session.add(api_key)
     session.commit()

@@ -26,7 +26,12 @@ def render_email_template(*, template_name: str, context: dict[str, Any]) -> str
     template_str = (
         Path(__file__).parent / "email-templates" / "build" / template_name
     ).read_text()
-    html_content = Template(template_str).render(context)
+    # Autoescape: the context holds values the *caller* typed — the email
+    # address in a password-recovery request, a display name — and they are
+    # interpolated into HTML. Without escaping, a value carrying markup is
+    # rendered as markup. An email is not a sandbox: it is rendered by the
+    # recipient's mail client, so there is nothing to contain it.
+    html_content = Template(template_str, autoescape=True).render(context)
     return html_content
 
 
