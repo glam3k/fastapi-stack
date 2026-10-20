@@ -6,6 +6,12 @@ function extractErrorMessage(err: ApiError): string {
     return err.message
   }
 
+  // A plain Error carries its own message — a thrown Error from our own code
+  // must not be replaced with a generic one.
+  if (err instanceof Error && err.message) {
+    return err.message
+  }
+
   const errDetail = (err.body as any)?.detail
   if (Array.isArray(errDetail) && errDetail.length > 0) {
     return errDetail[0].msg
