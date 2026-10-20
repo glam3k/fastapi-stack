@@ -18,7 +18,7 @@ def test_list_runs(client: TestClient, superuser_token_headers: dict[str, str]) 
         headers=superuser_token_headers,
     )
     assert response.status_code == 200
-    content = response.json()
+    content = response.json()["data"]
     assert isinstance(content, list)
     for run in content:
         assert "id" in run
@@ -41,7 +41,7 @@ def test_list_runs_after_enqueue(
         headers=superuser_token_headers,
     )
     assert response.status_code == 200
-    content = response.json()
+    content = response.json()["data"]
     run_ids = {run["id"] for run in content}
     assert run_id in run_ids
 
@@ -67,7 +67,7 @@ def test_list_runs_tag_filter(
         headers=superuser_token_headers,
     )
     assert response.status_code == 200
-    content = response.json()
+    content = response.json()["data"]
     run_ids = {run["id"] for run in content}
     assert owned_run in run_ids
     assert other_run not in run_ids
@@ -94,4 +94,4 @@ def test_enqueue_hello_world_scopes_to_current_user(
         f"{settings.API_V1_STR}/jobs/?tag={owner}",
         headers=superuser_token_headers,
     )
-    assert run["id"] in {entry["id"] for entry in listing.json()}
+    assert run["id"] in {entry["id"] for entry in listing.json()["data"]}
